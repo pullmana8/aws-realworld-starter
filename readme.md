@@ -1,7 +1,11 @@
-# ![RealWorld Example App](logo.png)
+# ![AWS Serverless RealWorld Example App](logo.png)
 
-> Example Serverless+Typescript codebase that adheres to the [RealWorld](https://github.com/gothinkster/realworld-example-apps) API spec and opinionated patterns of the [aws-ts-starter](https://github.com/bakerstreet-industries/aws-ts-starter).
-
+> Example Serverless+Typescript codebase that adheres to the [RealWorld](https://github.com/gothinkster/realworld-example-apps) API spec and opinionated patterns of the [aws-realworld-starter](https://github.com/bakerstreet-industries/aws-realworld-starter).
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ec75304a9b8b494aaa6cf821e106ddb3)](https://www.codacy.com/app/Roustalski/aws-realworld-starter?utm_source=github.com&utm_medium=referral&utm_content=bakerstreet-industries/aws-realworld-starter&utm_campaign=badger)
+[![Build Status](https://travis-ci.org/bakerstreet-industries/aws-realworld-starter.svg?branch=master)](https://travis-ci.org/bakerstreet-industries/aws-realworld-starter)
+[![Coverage Status](https://coveralls.io/repos/github/bakerstreet-industries/aws-realworld-starter/badge.svg?branch=master)](https://coveralls.io/github/bakerstreet-industries/aws-realworld-starter?branch=master)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 
 # How it works
 

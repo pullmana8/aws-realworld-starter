@@ -2,7 +2,7 @@
 
 serverless deploy
 
-if grep [[ENDPOINT]] ./module/tests/e2e.ts
+if grep [[ENDPOINT]] ./src/module/tests/e2e.ts
 then
     # Parse out the http endpoint
     endpoint="$(serverless info | grep POST - | sed 's/POST - //')"

@@ -22,7 +22,7 @@ provider:
 
 functions:
   module-post:
-    handler: module/handler.post
+    handler: src/module/handler.post
     environment:
       DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
     events:
@@ -32,7 +32,7 @@ functions:
           cors: true
 
   module-del:
-    handler: module/handler.del
+    handler: src/module/handler.del
     environment:
       DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
     events:
@@ -42,7 +42,7 @@ functions:
           cors: true
 
   module-get:
-    handler: module/handler.get
+    handler: src/module/handler.get
     environment:
       DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
     events:
@@ -52,7 +52,7 @@ functions:
           cors: true
 
   # module-list:
-  #   handler: module/handler.list
+  #   handler: src/module/handler.list
   #   environment:
   #     DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
   #   events:
@@ -62,7 +62,7 @@ functions:
   #         cors: true
 
   module-put:
-    handler: module/handler.put
+    handler: src/module/handler.put
     environment:
       DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
     events:

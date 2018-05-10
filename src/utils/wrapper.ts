@@ -1,7 +1,6 @@
 import { Context, APIGatewayEvent } from "aws-lambda";
 import { LambdaError } from "./errors";
 
-
 export function wrapFunction(func: (event: APIGatewayEvent) => Promise<any>): (event: APIGatewayEvent, context: Context, callback: AWSLambda.Callback) => void {
     return (event: APIGatewayEvent, context: Context, callback: AWSLambda.Callback) => {
         try {

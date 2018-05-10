@@ -5,7 +5,7 @@ import catchChaiAssertionFailures from "../../utils/tests/chai-assertion-catch";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = agent("[[ENDPOINT]]");
+const request = agent("https://p0xzjn5xkd.execute-api.us-east-1.amazonaws.com/dev/module/");
 
 
 function createModel(data: IModel): Promise<IModel> {
@@ -78,7 +78,7 @@ describe('Model Module CRUD', () => {
                 .then(() => request.get('error').send())
                 .then(res => {
                     chai.expect(res.status).to.be.equal(401, "Expected Status Code 401 Not Authorized");
-                    chai.expect(JSON.stringify(res.body)).to.be.equal('{"message":"Permission Denied","type":"Access Error"}');
+                    chai.expect(JSON.stringify(res.body)).to.be.equal('{"errors":{"body":["Access Error"]},"type":"requestUnauthorizedError"}');
                 });
         });
     });

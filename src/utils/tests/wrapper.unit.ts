@@ -44,7 +44,7 @@ describe('API Gateway Wrapper', () => {
         wrappedModule.sampleLambdaErr(null, null, (error?: Error | null, result?: any) => {
             chai.expect(result).contains.all.keys("statusCode", "body");
             chai.expect(result.statusCode).to.equal(404);
-            chai.expect(result.body).to.equal('{"message":"The object SampleErr is not found","type":"notFound"}');
+            chai.expect(result.body).to.equal('{"errors":{"body":["The resource `SampleErr` cannot be found"]},"type":"notFound"}');
             done();
         });
     });
@@ -62,7 +62,7 @@ describe('API Gateway Wrapper', () => {
         wrappedModule.sampleLambdaThrow(null, null, (error?: Error | null, result?: any) => {
             chai.expect(result).contains.all.keys("statusCode", "body");
             chai.expect(result.statusCode).to.equal(404);
-            chai.expect(result.body).to.equal('{"message":"The object ThrowTime is not found","type":"notFound"}');
+            chai.expect(result.body).to.equal('{"errors":{"body":["The resource `ThrowTime` cannot be found"]},"type":"notFound"}');
             done();
         });
     });

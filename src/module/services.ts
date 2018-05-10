@@ -2,7 +2,7 @@ import log from "ts-log-class";
 import { inject, injectable } from "inversify";
 import { MODULE_TYPES, IModel } from "./models";
 import { IModuleRepo } from "./repos";
-import { LambdaError } from "../utils/errors";
+import * as Util from "../utils";
 
 export interface IModuleService {
     post(model: IModel): Promise<IModel>;
@@ -33,7 +33,7 @@ export class ModuleService implements IModuleService {
     public get(id: string): Promise<IModel> {
         // Sample throw logic
         if (id == "error") {
-            throw new LambdaError(401, "Permission Denied", "Access Error");
+            throw Util.Errors.LambdaError.requestUnauthorizedError("Access Error");
         }
         return this._repo.get(id);
     }
@@ -55,7 +55,7 @@ export class ModuleService implements IModuleService {
 
     private validate(model: IModel): void {
         if (model === null || model === undefined) {
-            throw new LambdaError(400, "Model updates require a model that is not null or undefined.", "Request Error");
+            throw Util.Errors.LambdaError.requestValidationError("Model updates require a model that is not null or undefined.");
         }
     }
 

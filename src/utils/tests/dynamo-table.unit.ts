@@ -108,7 +108,7 @@ describe('Dynamo Table Wrapper', () => {
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
-      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"message":"The object {\\"key\\":\\"val\\"} is not found","type":"notFound"}');
+      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"type":"notFound","errors":{"body":["The resource `{\\\"key\\\":\\\"val\\\"}` cannot be found"]}}');
     });
   });
 
@@ -119,7 +119,7 @@ describe('Dynamo Table Wrapper', () => {
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
-      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"message":"The object {\\"key\\":\\"val\\"} is not found","type":"notFound"}');
+      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"type":"notFound","errors":{"body":["The resource `{\\\"key\\\":\\\"val\\\"}` cannot be found"]}}');
     });
   });
 
@@ -130,7 +130,7 @@ describe('Dynamo Table Wrapper', () => {
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
-      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"message":"The object {\\"key\\":\\"val\\"} is not found","type":"notFound"}');
+      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"type":"notFound","errors":{"body":["The resource `{\\\"key\\\":\\\"val\\\"}` cannot be found"]}}');
     });
   });
 
@@ -181,7 +181,7 @@ describe('Dynamo Table Wrapper', () => {
     };
     return dtw.put({ "key": "val", "createTime": 1514312897594 }).catch(reason => {
       chai.expect(reason instanceof LambdaError).to.be.true;
-      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":500,"message":"sample-put-error","type":"putFailed"}');
+      chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":500,"type":"putFailed","errors":{"body":["sample-put-error"]}}');
     });
   });
 

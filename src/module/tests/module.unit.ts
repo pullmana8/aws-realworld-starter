@@ -112,7 +112,7 @@ describe('Model Module CRUD', () => {
 
         return post(event)
             .catch((reason: LambdaError) => {
-                chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"message":"The object {\\":id\\":\\"1234\\"} is not found","type":"notFound"}');
+                chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"type":"notFound","errors":{"body":["The resource `{\\\":id\\\":\\\"1234\\\"}` cannot be found"]}}');
             });
     });
 
@@ -121,7 +121,7 @@ describe('Model Module CRUD', () => {
         try {
             return post(event);
         } catch (err) {
-            chai.expect(JSON.stringify(err)).to.equal('{"statusCode":400,"message":"Model updates require a model that is not null or undefined.","type":"Request Error"}');
+            chai.expect(JSON.stringify(err)).to.equal('{"statusCode":422,"type":"requestValidationError","errors":{"body":["Model updates require a model that is not null or undefined."]}}');
         }
     });
 
@@ -136,7 +136,7 @@ describe('Model Module CRUD', () => {
         let req: IDeleteRequest = generateApiEvent({ id: "does-not-exist" });
 
         return del(req).catch(reason => {
-            chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"message":"The object {\\":id\\":\\"does-not-exist\\"} is not found","type":"notFound"}');
+            chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":404,"type":"notFound","errors":{"body":["The resource `{\\\":id\\\":\\\"does-not-exist\\\"}` cannot be found"]}}');
         });
     });
 
@@ -155,7 +155,7 @@ describe('Model Module CRUD', () => {
         try {
             return get(req)
         } catch (err) {
-            chai.expect(JSON.stringify(err)).to.equal('{"statusCode":401,"message":"Permission Denied","type":"Access Error"}');
+            chai.expect(JSON.stringify(err)).to.equal('{"statusCode":401,"type":"requestUnauthorizedError","errors":{"body":["Access Error"]}}');
         }
     });
 

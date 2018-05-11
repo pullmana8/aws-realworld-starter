@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "AWS Serverless typescript starter kit using webpack",
   "scripts": {
-    "test": "DYNAMO_TABLE=sweeeet nyc mocha **/*.unit.ts",
-    "test:e2e": "nyc mocha **/e2e.ts --timeout 10000",
+    "test": "DYNAMO_TABLE=sweeeet nyc mocha -r reflect-metadata src/**/*.unit.spec.ts",
+    "test:e2e": "nyc mocha **/e2e.spec.ts --timeout 10000",
     "test:e2e:deploy": "./e2e.sh"
   },
   "nyc": {
     "include": [
-      "module/*.ts",
-      "utils/*.ts"
+      "src/auth/*.ts",
+      "src/utils/*.ts"
     ],
     "extension": [
       ".ts"
@@ -32,7 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "inversify": "^4.5.1",
-    "reflect-metadata": "^0.1.10",
+    "reflect-metadata": "^0.1.12",
     "ts-log-class": "^1.0.15",
     "uuid": "^3.1.0"
   },
@@ -56,6 +56,8 @@
     "supertest": "^3.0.0",
     "ts-loader": "^2.3.7",
     "ts-node": "^3.3.0",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.3",
     "webpack": "^3.11.0"
   }

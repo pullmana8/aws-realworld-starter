@@ -1,5 +1,36 @@
 // https://github.com/gothinkster/realworld/tree/master/api#errors-and-status-codes
 
+const REQUEST_VALIDATION_ERR = {
+  code: 422,
+  type: 'requestValidationError'
+};
+
+const REQUEST_UNAUTHORIZED_ERR = {
+  code: 401,
+  type: 'requestUnauthorizedError'
+};
+
+const REQUEST_FORBIDDEN_ERR = {
+  code: 403,
+  type: 'requestForbiddenError'
+};
+
+const NOT_FOUND_ERR = {
+  code: 404,
+  type: 'notFound'
+};
+
+enum INTERNAL_ERR_TYPES {
+  deleteFailed = 'deleteFailed',
+  internalError = 'internalError',
+  putFailed = 'putFailed'
+}
+
+const INTERNAL_ERR = {
+  code: 500,
+  type: INTERNAL_ERR_TYPES
+};
+
 export interface ILambdaError {
   errors: { body: string[]; };
   statusCode: number;
@@ -12,7 +43,7 @@ export interface ILambdaError {
 }
 
 export class LambdaError implements ILambdaError {
-  errors = {
+  errors: { body: string[] } = {
     body: []
   };
 
@@ -21,31 +52,31 @@ export class LambdaError implements ILambdaError {
   }
 
   static requestValidationError(...messages: string[]): ILambdaError {
-    return new LambdaError(422, 'requestValidationError', ...messages);
+    return new LambdaError(REQUEST_VALIDATION_ERR.code, REQUEST_VALIDATION_ERR.type, ...messages);
   }
 
   static requestUnauthorizedError(...messages: string[]): ILambdaError {
-    return new LambdaError(401, 'requestUnauthorizedError', ...messages);
+    return new LambdaError(REQUEST_UNAUTHORIZED_ERR.code, REQUEST_UNAUTHORIZED_ERR.type, ...messages);
   }
 
   static requestForbiddenError(...messages: string[]): ILambdaError {
-    return new LambdaError(403, 'requestForbiddenError', ...messages);
+    return new LambdaError(REQUEST_FORBIDDEN_ERR.code, REQUEST_FORBIDDEN_ERR.type, ...messages);
   }
 
   static notFound(obj: string): ILambdaError {
-    return new LambdaError(404, 'notFound', `The resource \`${obj}\` cannot be found`);
+    return new LambdaError(NOT_FOUND_ERR.code, NOT_FOUND_ERR.type, `The resource \`${obj}\` cannot be found`);
   }
 
   static internalError(err: { message: string }): ILambdaError {
-    return new LambdaError(500, 'internalError', err.message);
+    return new LambdaError(INTERNAL_ERR.code, INTERNAL_ERR.type.internalError, err.message);
   }
 
   static putDataFailed(err: { message: string }): ILambdaError {
-    return new LambdaError(500, 'putFailed', err.message);
+    return new LambdaError(INTERNAL_ERR.code, INTERNAL_ERR.type.putFailed, err.message);
   }
 
   static deleteDataFailed(err: { message: string }): ILambdaError {
-    return new LambdaError(500, 'deleteFailed', err.message);
+    return new LambdaError(INTERNAL_ERR.code, INTERNAL_ERR.type.deleteFailed, err.message);
   }
 
   toLambda() {

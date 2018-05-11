@@ -15,7 +15,7 @@
 * Follows [The Repository Pattern](https://msdn.microsoft.com/en-us/library/ff649690.aspx)
 * Structured and intended to be used as a microservice
 * 100% unit test coverage of all boilerplate module code to encourage BDD/TDD
-* Fully functional end-to-end testing of the specified API via a Serverless YAML
+* Fully functional end-to-end testing of the RealWorld API spec via a Serverless YAML
 * A default Repository implementation against a Dynamo DB
 * An AWS handler wrapper that takes care of the API Gateway callback and error handling, either by thrown errors or by caught promises
 

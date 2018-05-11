@@ -1,6 +1,5 @@
 import chai = require("chai");
-import { DynamoTableWrapper, IDynamoDBDocumentClient, IDynamoTable } from "../dynamo-table";
-import { IAppSettings } from "../../module/models";
+import { DynamoTableWrapper, IDynamoDBDocumentClient, IDynamoTable, IDynamoSettings } from "../dynamo-table";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { AWSError } from "aws-sdk/lib/error";
 import { Request } from "aws-sdk/lib/request";
@@ -16,8 +15,8 @@ function generateDummyRequest(): Request<DocumentClient.DeleteItemOutput | Docum
     on: null,
     promise: null,
     startTime: null,
-    httpRequest: null,
-  };
+    httpRequest: null
+  } as any;
 }
 
 describe('Dynamo Table Wrapper', () => {
@@ -25,23 +24,22 @@ describe('Dynamo Table Wrapper', () => {
   let mockDocumentClient: IDynamoDBDocumentClient;
   let dtw: IDynamoTable;
   let err: AWSError;
-  let settings: IAppSettings;
+  let settings: IDynamoSettings;
 
   beforeEach(() => {
     settings = {
+      addTimestamps: true,
       table: {
-        addTimestamps: true,
-        idFields: null,
+        idFields: [],
         name: "blah"
-      },
-      example: "sampleSetting"
+      }
     };
 
     mockDocumentClient = {
       delete: null,
       query: null,
       put: null
-    };
+    } as any;
 
     dtw = new DynamoTableWrapper(settings, mockDocumentClient);
 
@@ -64,9 +62,9 @@ describe('Dynamo Table Wrapper', () => {
 
   it("Execute the Document delete method successfully", () => {
     let result: any;
-    mockDocumentClient.delete = (params: DocumentClient.DeleteItemInput, callback?: (err: AWSError, data: DocumentClient.DeleteItemOutput) => void): Request<DocumentClient.DeleteItemOutput, AWSError> => {
+    mockDocumentClient.delete = (_params: DocumentClient.DeleteItemInput, callback: (err: AWSError, data: DocumentClient.DeleteItemOutput) => void): Request<DocumentClient.DeleteItemOutput, AWSError> => {
       result = "mock-delete";
-      callback(null, result);
+      (callback as any)(null, result);
       return generateDummyRequest();
     };
     return dtw.delete({ "mock-key": "mock-val" }).then(() => {
@@ -75,10 +73,10 @@ describe('Dynamo Table Wrapper', () => {
   });
 
   it("Execute the Document delete method unsuccessfully", () => {
-    mockDocumentClient.delete = (params: DocumentClient.DeleteItemInput, callback?: (err: AWSError, data: DocumentClient.DeleteItemOutput) => void): Request<DocumentClient.DeleteItemOutput, AWSError> => {
+    mockDocumentClient.delete = (params: DocumentClient.DeleteItemInput, callback: (err: AWSError, data: DocumentClient.DeleteItemOutput) => void): Request<DocumentClient.DeleteItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      err.message = "mock-delete-fail"
-      callback(err, null);
+      err.message = "mock-delete-fail";
+      (callback as any)(err, null);
       return generateDummyRequest();
     };
     return dtw.delete({ "mock-key": "mock-val" }).catch(reason => {
@@ -93,7 +91,7 @@ describe('Dynamo Table Wrapper', () => {
   it("Execute the Document get method successfully", () => {
     mockDocumentClient.query = (params: DocumentClient.QueryInput, callback?: (err: AWSError, data: DocumentClient.QueryOutput) => void): Request<DocumentClient.QueryOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      callback(null, { Items: [{}] });
+      (callback as any)(null, { Items: [{}] });
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).then(data => {
@@ -104,7 +102,7 @@ describe('Dynamo Table Wrapper', () => {
   it("Execute the Document get method unsuccessfully with no Items Property", () => {
     mockDocumentClient.query = (params: DocumentClient.QueryInput, callback?: (err: AWSError, data: DocumentClient.QueryOutput) => void): Request<DocumentClient.QueryOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      callback(null, {});
+      (callback as any)(null, {});
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
@@ -115,7 +113,7 @@ describe('Dynamo Table Wrapper', () => {
   it("Execute the Document get method unsuccessfully with no Items", () => {
     mockDocumentClient.query = (params: DocumentClient.QueryInput, callback?: (err: AWSError, data: DocumentClient.QueryOutput) => void): Request<DocumentClient.QueryOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      callback(null, { Items: [] });
+      (callback as any)(null, { Items: [] });
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
@@ -126,7 +124,7 @@ describe('Dynamo Table Wrapper', () => {
   it("Execute the Document get method unsuccessfully with AWSError", () => {
     mockDocumentClient.query = (params: DocumentClient.QueryInput, callback?: (err: AWSError, data: DocumentClient.QueryOutput) => void): Request<DocumentClient.QueryOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      callback(err, null);
+      (callback as any)(err, null);
       return generateDummyRequest();
     };
     return dtw.get("", { "key": "val" }).catch(reason => {
@@ -137,10 +135,10 @@ describe('Dynamo Table Wrapper', () => {
   it("Should not add a createTime property to the incoming object when addTimestamps is true", () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      callback(null, params.Item);
+      (callback as any)(null, params.Item);
       return generateDummyRequest();
     };
-    settings.table.addTimestamps = false;
+    settings.addTimestamps = false;
     return dtw.put({ "key": "val" }).then(data => {
       chai.expect(JSON.stringify(data)).to.equal('{"key":"val"}');
     });
@@ -149,9 +147,9 @@ describe('Dynamo Table Wrapper', () => {
   it("Should add a createTime property to the incoming object when addTimestamps is true", () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      //New create time values are always set to Date.now(), which will never pass a test looking for a static time
+      // New create time values are always set to Date.now(), which will never pass a test looking for a static time
       params.Item.createTime = 1514312897594;
-      callback(null, params.Item);
+      (callback as any)(null, params.Item);
       return generateDummyRequest();
     };
     return dtw.put({ "key": "val" }).then(data => {
@@ -162,9 +160,9 @@ describe('Dynamo Table Wrapper', () => {
   it("Should add an updateTime property to the incoming object when addTimestamps is true and a createTime property already exists", () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      //New update time values are always set to Date.now(), which will never pass a test looking for a static time
+      // New update time values are always set to Date.now(), which will never pass a test looking for a static time
       params.Item.updateTime = 1514313438713;
-      callback(null, params.Item);
+      (callback as any)(null, params.Item);
       return generateDummyRequest();
     };
     return dtw.put({ "key": "val", "createTime": 1514312897594 }).then(data => {
@@ -176,10 +174,11 @@ describe('Dynamo Table Wrapper', () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
       err.message = "sample-put-error";
-      callback(err, null);
+      (callback as any)(err, null);
       return generateDummyRequest();
     };
     return dtw.put({ "key": "val", "createTime": 1514312897594 }).catch(reason => {
+      // tslint:disable-next-line:no-unused-expression
       chai.expect(reason instanceof LambdaError).to.be.true;
       chai.expect(JSON.stringify(reason)).to.equal('{"statusCode":500,"type":"putFailed","errors":{"body":["sample-put-error"]}}');
     });
@@ -188,13 +187,13 @@ describe('Dynamo Table Wrapper', () => {
   it("Should add property fields to the incoming object when idFields are set on the settings object and no id field already exists", () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      //New id values are always generated with a new uuid, which will never pass a test looking for a static id values
+      // New id values are always generated with a new uuid, which will never pass a test looking for a static id values
       params.Item.sample = "cd965b00-ea6c-11e7-966b-b13b8d801f06";
       params.Item.id = "cd965b01-ea6c-11e7-966b-b13b8d801f06";
-      callback(null, params.Item);
+      (callback as any)(null, params.Item);
       return generateDummyRequest();
     };
-    settings.table.addTimestamps = false;
+    settings.addTimestamps = false;
     settings.table.idFields = ["sample", "id"];
     return dtw.put({ "key": "val" }).then(data => {
       chai.expect(JSON.stringify(data)).to.equal('{"key":"val","sample":"cd965b00-ea6c-11e7-966b-b13b8d801f06","id":"cd965b01-ea6c-11e7-966b-b13b8d801f06"}');
@@ -204,12 +203,12 @@ describe('Dynamo Table Wrapper', () => {
   it("Should add property fields to the incoming object when idFields are set on the settings object and no id field already exists", () => {
     mockDocumentClient.put = (params: DocumentClient.PutItemInput, callback?: (err: AWSError, data: DocumentClient.PutItemOutput) => void): Request<DocumentClient.PutItemOutput, AWSError> => {
       chai.expect(params.TableName).to.equal("blah");
-      //New id values are always generated with a new uuid, which will never pass a test looking for a static id values
+      // New id values are always generated with a new uuid, which will never pass a test looking for a static id values
       params.Item.id = "cd965b01-ea6c-11e7-966b-b13b8d801f06";
-      callback(null, params.Item);
+      (callback as any)(null, params.Item);
       return generateDummyRequest();
     };
-    settings.table.addTimestamps = false;
+    settings.addTimestamps = false;
     settings.table.idFields = ["sample", "id"];
     return dtw.put({ "key": "val", "sample": "muwahaha" }).then(data => {
       chai.expect(JSON.stringify(data)).to.equal('{"key":"val","sample":"muwahaha","id":"cd965b01-ea6c-11e7-966b-b13b8d801f06"}');

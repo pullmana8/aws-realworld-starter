@@ -1,5 +1,5 @@
 service:
-  name: module-template
+  name: realworld-api-spec
 
 plugins:
   - serverless-webpack
@@ -8,7 +8,7 @@ provider:
   name: aws
   runtime: nodejs6.10
   environment:
-    DYNAMO_TABLE: dynamo-table-${self:service}-${opt:stage, self:provider.stage}
+    AUTH_TABLE: dynamo-table-${self:service}-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -18,82 +18,40 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMO_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.AUTH_TABLE}"
+
+package:
+  excludeDevDependencies: true
 
 functions:
-  module-post:
-    handler: src/module/handler.post
+  register:
+    handler: src/auth/handler.register
     environment:
-      DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
+      AUTH_TABLE_NAME: ${self:provider.environment.AUTH_TABLE}
     events:
       - http:
           method: post
-          path: module
-          cors: true
-
-  module-del:
-    handler: src/module/handler.del
-    environment:
-      DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
-    events:
-      - http:
-          method: delete
-          path: module/{id}
-          cors: true
-
-  module-get:
-    handler: src/module/handler.get
-    environment:
-      DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
-    events:
-      - http:
-          method: get
-          path: module/{id}
-          cors: true
-
-  # module-list:
-  #   handler: src/module/handler.list
-  #   environment:
-  #     DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
-  #   events:
-  #     - http:
-  #         method: get
-  #         path: module
-  #         cors: true
-
-  module-put:
-    handler: src/module/handler.put
-    environment:
-      DYNAMO_TABLE: ${self:provider.environment.DYNAMO_TABLE}
-    events:
-      - http:
-          method: put
-          path: module
+          path: api/users
           cors: true
 
 resources:
   Resources:
-    DynamoTable:
+    AuthTable:
       Type: AWS::DynamoDB::Table
       # NOTE: If you are testing and have deletion policy on during a serverless remove, you must manually delete the table before re-deploying.
       # DeletionPolicy: Retain # Keeps around the DynamoDB resource when we redeploy/destroy
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: email
             AttributeType: S
-          -
-            AttributeName: createTime
+          - AttributeName: createTime
             AttributeType: N
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: email
             KeyType: HASH
-          -
-            AttributeName: createTime
+          - AttributeName: createTime
             KeyType: RANGE
-
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:provider.environment.DYNAMO_TABLE}
+        TableName: ${self:provider.environment.AUTH_TABLE}

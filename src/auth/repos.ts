@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { injectable, inject } from "inversify";
 import log from "ts-log-class";
 import * as Utils from "../utils";

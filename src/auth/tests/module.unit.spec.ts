@@ -67,7 +67,9 @@ let settings: IDynamoSettings = {
     name: "blah"
   }
 };
-let dtw: DynamoTableWrapper = new DynamoTableWrapper(settings, mockDocumentClient);
+let dtw: DynamoTableWrapper = new DynamoTableWrapper();
+dtw.documentClient = mockDocumentClient;
+dtw.settings = settings;
 container.rebind<IDynamoTable>(MODULE_TYPES.Database).toConstantValue(dtw);
 
 // Import methods that utilize the container after the mocked rebind

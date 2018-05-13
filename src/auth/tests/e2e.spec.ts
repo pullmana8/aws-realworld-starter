@@ -5,12 +5,12 @@ import { IUser, IUserRegistration } from "../models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = agent("https://9o02ithc3h.execute-api.us-east-1.amazonaws.com/dev/");
+const request = agent("[[ENDPOINT]]");
 
 function register(userReg: IUserRegistration): Promise<IUser> {
   return new Promise((resolve, reject) => {
     request
-      .post('api/users')
+      .post('')
       .send(userReg)
       .set('accept', 'json')
       .end((err, res) => {
@@ -26,17 +26,17 @@ function register(userReg: IUserRegistration): Promise<IUser> {
 
 describe('Register User Scenarios', () => {
 
-  let model1: IUserRegistration;
-
   describe('Success scenarios', () => {
 
     it('Should successfully register a user', () => {
       return catchChaiAssertionFailures(Promise.resolve())
-        .then(() => register({ email: "", password: "", username: "" }))
-        .then(_res => {
-          console.log(_res);
-          chai.expect(true).to.equal(false);
-          return model1;
+        .then(() => register({ email: "a@a.com", password: "1234", username: "abc123" }))
+        .then(res => {
+          chai.expect(res).to.not.equal(undefined);
+          chai.expect(res).to.not.equal(null);
+          chai.expect(res.email).to.equal("a@a.com");
+          // chai.expect(res.hasOwnProperty("password")).to.equal(false);
+          chai.expect(res.username).to.equal("abc123");
         });
     });
 

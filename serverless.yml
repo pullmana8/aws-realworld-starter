@@ -28,6 +28,7 @@ functions:
     handler: src/auth/handler.register
     environment:
       AUTH_TABLE_NAME: ${self:provider.environment.AUTH_TABLE}
+      AUTH_TABLE_ADD_TIMESTAMPS: TRUE
     events:
       - http:
           method: post

@@ -1,4 +1,5 @@
 import uuid = require("uuid");
+import { injectable } from "inversify";
 import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
 import { AWSError } from "aws-sdk/lib/error";
 import { Request } from "aws-sdk/lib/request";
@@ -29,9 +30,11 @@ export interface IDynamoSettings {
 export type TableProvider = (settings: IDynamoSettings, client: IDynamoDBDocumentClient) => Promise<IDynamoTable>;
 export const WRAPPER_KEY = Symbol("DynamoTableWrapper");
 
+@injectable()
 export class DynamoTableWrapper implements IDynamoTable {
 
-  constructor(public settings: IDynamoSettings, public documentClient: IDynamoDBDocumentClient) { }
+  public settings: IDynamoSettings;
+  public documentClient: IDynamoDBDocumentClient;
 
   delete(key: { [name: string]: any }): Promise<void> {
     return new Promise((resolve, reject) => {

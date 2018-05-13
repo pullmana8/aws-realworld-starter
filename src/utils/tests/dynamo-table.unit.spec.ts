@@ -41,7 +41,9 @@ describe('Dynamo Table Wrapper', () => {
       put: null
     } as any;
 
-    dtw = new DynamoTableWrapper(settings, mockDocumentClient);
+    dtw = new DynamoTableWrapper();
+    dtw.settings = settings;
+    dtw.documentClient = mockDocumentClient;
 
     err = {
       code: "",

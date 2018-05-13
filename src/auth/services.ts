@@ -33,7 +33,14 @@ export class Service implements IService {
         if (maybeUser) {
           throw Util.ErrorGenerators.requestValidation(this.USER_ALREADY_EXISTS);
         }
-        return this._repo.put(data as any);
+        throw Util.Errors.LambdaError.internalError({ message: "[Auth.Service] error - If a user is not found, an error is thrown, so we should not get here." });
+      }).catch(reason => {
+        if (reason instanceof Util.Errors.LambdaError) {
+          if (reason.type === Util.Errors.NOT_FOUND_ERR.type) {
+            return this._repo.put(data as any);
+          }
+        }
+        throw reason;
       });
   }
 

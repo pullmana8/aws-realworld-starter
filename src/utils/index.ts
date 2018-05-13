@@ -12,7 +12,7 @@ function getEnvVar(name: string, defaults?: any): string {
     Logging.Logger.info(msg);
     value = process.env[name];
   }
-  return value;
+  return value || "";
 }
 
 function safeJsonParse<T>(input: string): T | undefined {

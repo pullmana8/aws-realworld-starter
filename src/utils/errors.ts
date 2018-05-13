@@ -1,32 +1,32 @@
 // https://github.com/gothinkster/realworld/tree/master/api#errors-and-status-codes
 
-const REQUEST_VALIDATION_ERR = {
+export const REQUEST_VALIDATION_ERR = {
   code: 422,
   type: 'requestValidationError'
 };
 
-const REQUEST_UNAUTHORIZED_ERR = {
+export const REQUEST_UNAUTHORIZED_ERR = {
   code: 401,
   type: 'requestUnauthorizedError'
 };
 
-const REQUEST_FORBIDDEN_ERR = {
+export const REQUEST_FORBIDDEN_ERR = {
   code: 403,
   type: 'requestForbiddenError'
 };
 
-const NOT_FOUND_ERR = {
+export const NOT_FOUND_ERR = {
   code: 404,
   type: 'notFound'
 };
 
-enum INTERNAL_ERR_TYPES {
+export enum INTERNAL_ERR_TYPES {
   deleteFailed = 'deleteFailed',
   internalError = 'internalError',
   putFailed = 'putFailed'
 }
 
-const INTERNAL_ERR = {
+export const INTERNAL_ERR = {
   code: 500,
   type: INTERNAL_ERR_TYPES
 };

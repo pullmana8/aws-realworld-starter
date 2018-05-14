@@ -5,7 +5,8 @@
   "scripts": {
     "test": "DYNAMO_TABLE=sweeeet nyc mocha -r reflect-metadata tests/**/*.unit.spec.ts",
     "test:e2e": "nyc mocha tests/**/e2e.spec.ts --timeout 10000",
-    "test:e2e:deploy": "./node_modules/serverless/bin/serverless deploy && gulp && npm run test:e2e"
+    "test:e2e:deploy": "./node_modules/serverless/bin/serverless deploy && gulp && npm run test:e2e",
+    "test:e2e:remove": "./node_modules/serverless/bin/serverless remove"
   },
   "nyc": {
     "include": [

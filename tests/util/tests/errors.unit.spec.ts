@@ -1,4 +1,4 @@
-import * as Errors from '../errors';
+import * as Errors from '../../../src/utils/errors';
 import chai = require("chai");
 
 describe('LambdaError', () => {

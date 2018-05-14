@@ -1,6 +1,8 @@
-import { MODULE_TYPES } from '../models';
-import container from "../../container";
-import { IDynamoDBDocumentClient, DynamoTableWrapper, IDynamoTable, IDynamoSettings } from '../../utils/dynamo-table';
+import { MODULE_TYPES, IUser } from '../../../src/auth/models';
+import container, { isLoaded } from "../../../src/container";
+import { IDynamoDBDocumentClient, DynamoTableWrapper, IDynamoTable, IDynamoSettings } from '../../../src/utils/dynamo-table';
+import { register } from '../../../src/auth/main';
+import { LambdaError } from '../../../src/utils/errors';
 import { APIGatewayEvent } from 'aws-lambda';
 import { Request } from 'aws-sdk/lib/request';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
@@ -70,47 +72,44 @@ let settings: IDynamoSettings = {
 let dtw: DynamoTableWrapper = new DynamoTableWrapper();
 dtw.documentClient = mockDocumentClient;
 dtw.settings = settings;
-container.rebind<IDynamoTable>(MODULE_TYPES.Database).toConstantValue(dtw);
+isLoaded.then(() => {
 
-// Import methods that utilize the container after the mocked rebind
-import { register } from '../main';
-import { LambdaError } from '../../utils/errors';
+  container.rebind<IDynamoTable>(MODULE_TYPES.Database).toConstantValue(dtw);
 
-describe('Auth Module CRUD', () => {
+  describe('Auth Module CRUD', () => {
 
-  let event: APIGatewayEvent;
+    let event: APIGatewayEvent;
 
-  beforeEach(() => {
-    event = generateApiEvent();
-  });
-
-  describe("Register function should throw 422 request validation errors", () => {
-    it("Missing user registration inforamtion error message", () => {
-      event.body = "";
-      run422Expectations("Missing user registration information");
+    beforeEach(() => {
+      event = generateApiEvent();
     });
 
-    it("Missing field provided error message", () => {
-      event.body = JSON.stringify({ name: "whoop" });
-      run422Expectations("Email, password, or username was not provided");
-    });
-  });
+    describe("Register function should throw 422 request validation errors", () => {
+      it("Missing user registration inforamtion error message", () => {
+        event.body = "";
+        return run422Expectations("Missing user registration information");
+      });
 
-  function run422Expectations(body: string): void {
-    try {
-      register(event);
-    } catch (err) {
-      const le: LambdaError = err as LambdaError;
-      chai.expect(le instanceof LambdaError).to.equal(true);
-      chai.expect(le.statusCode).to.equal(422);
-      chai.expect(le.type).to.equal("requestValidationError");
-      chai.expect(le.errors).to.not.equal(undefined);
-      chai.expect(le.errors).to.not.equal(null);
-      chai.expect(le.errors.body).to.not.equal(undefined);
-      chai.expect(le.errors.body).to.not.equal(null);
-      chai.expect(le.errors.body.length).to.equal(1);
-      chai.expect(le.errors.body[0]).to.equal(body);
+      it("Missing field provided error message", () => {
+        event.body = JSON.stringify({ name: "whoop" });
+        return run422Expectations("Email, password, or username was not provided");
+      });
+    });
+
+    function run422Expectations(body: string): Promise<void | IUser> {
+      return register(event)
+        .catch(err => {
+          const le: LambdaError = err as LambdaError;
+          chai.expect(le instanceof LambdaError).to.equal(true);
+          chai.expect(le.statusCode).to.equal(422);
+          chai.expect(le.type).to.equal("requestValidationError");
+          chai.expect(le.errors).to.not.equal(undefined);
+          chai.expect(le.errors).to.not.equal(null);
+          chai.expect(le.errors.body).to.not.equal(undefined);
+          chai.expect(le.errors.body).to.not.equal(null);
+          chai.expect(le.errors.body.length).to.equal(1);
+          chai.expect(le.errors.body[0]).to.equal(body);
+        });
     }
-  }
-
+  });
 });

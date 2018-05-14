@@ -1,9 +1,9 @@
 import chai = require("chai");
-import { DynamoTableWrapper, IDynamoDBDocumentClient, IDynamoTable, IDynamoSettings } from "../dynamo-table";
+import { DynamoTableWrapper, IDynamoDBDocumentClient, IDynamoTable, IDynamoSettings } from "../../../src/utils/dynamo-table";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { AWSError } from "aws-sdk/lib/error";
 import { Request } from "aws-sdk/lib/request";
-import { LambdaError } from "../errors";
+import { LambdaError } from "../../../src/utils/errors";
 
 function generateDummyRequest(): Request<DocumentClient.DeleteItemOutput | DocumentClient.QueryOutput | DocumentClient.PutItemOutput, AWSError> {
   return {

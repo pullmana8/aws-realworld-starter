@@ -1,16 +1,16 @@
 import chai = require("chai");
 import { agent } from "supertest";
-import catchChaiAssertionFailures from "../../utils/tests/chai-assertion-catch";
-import { IUser, IUserRegistration } from "../models";
+import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
+import { IUser, IUserRegistration } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = agent("[[ENDPOINT]]");
+const request = agent("https://zkbaujklq7.execute-api.us-east-1.amazonaws.com/dev/");
 
 function register(userReg: IUserRegistration): Promise<IUser> {
   return new Promise((resolve, reject) => {
     request
-      .post('')
+      .post('api/users')
       .send(userReg)
       .set('accept', 'json')
       .end((err, res) => {

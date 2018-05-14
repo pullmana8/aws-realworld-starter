@@ -1,7 +1,7 @@
 import chai = require("chai");
 import { APIGatewayEvent } from "aws-lambda";
-import wrapModule from "../wrapper";
-import { LambdaError } from "../errors";
+import wrapModule from "../../../src/utils/wrapper";
+import { LambdaError } from "../../../src/utils/errors";
 
 let sampleModule = {
   sampleSuccess: (_event: APIGatewayEvent): Promise<string> => {

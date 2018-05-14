@@ -5,7 +5,7 @@ import { IUser, IUserRegistration } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = agent("https://zkbaujklq7.execute-api.us-east-1.amazonaws.com/dev/");
+const request = agent("[[ENDPOINT]]");
 
 function register(userReg: IUserRegistration): Promise<IUser> {
   return new Promise((resolve, reject) => {

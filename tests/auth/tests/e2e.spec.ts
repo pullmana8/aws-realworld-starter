@@ -13,6 +13,7 @@ function register(userReg: IUserRegistration): Promise<IUser> {
       .post('api/users')
       .send(userReg)
       .set('accept', 'json')
+      .expect(200)
       .end((err, res) => {
         if (err) {
           console.log(err);
@@ -35,7 +36,9 @@ describe('Register User Scenarios', () => {
           chai.expect(res).to.not.equal(undefined);
           chai.expect(res).to.not.equal(null);
           chai.expect(res.email).to.equal("a@a.com");
-          // chai.expect(res.hasOwnProperty("password")).to.equal(false);
+          chai.expect(res.hasOwnProperty("password")).to.equal(false);
+          chai.expect(res.hasOwnProperty("hash")).to.equal(false);
+          chai.expect(res.hasOwnProperty("salt")).to.equal(false);
           chai.expect(res.username).to.equal("abc123");
         });
     });

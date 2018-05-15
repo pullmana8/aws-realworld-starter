@@ -4,16 +4,41 @@ export const MODULE_TYPES = {
   Service: Symbol("AuthService")
 };
 
-export interface IUserRegistration {
+export interface IUser {
   email: string;
-  password: string;
   username: string;
 }
 
-export interface IUser {
+export interface IUserRegistration extends IUser {
+  password: string;
+}
+
+export interface IUserProfile extends IUser {
   bio: string;
-  email: string;
   image: string;
   token: string;
-  username: string;
 }
+
+/**
+ * Represents the data stored within the database and used internally, but
+ * not exposed out of this API.
+ *
+ * @export
+ * @interface IUserStored
+ */
+export interface IUserStored {
+  passwordHash: string;
+  passwordSalt: string;
+}
+
+export enum UserPrivateProperties {
+  password = "password",
+  passwordHash = "passwordHash",
+  passwordSalt = "passwordSalt"
+}
+
+export const USER_PRIVATE_PROPERTIES = [
+  UserPrivateProperties.password,
+  UserPrivateProperties.passwordHash,
+  UserPrivateProperties.passwordSalt
+];

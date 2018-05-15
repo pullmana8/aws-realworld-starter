@@ -1,8 +1,8 @@
 import log from "ts-log-class";
 import { inject, injectable } from "inversify";
+import * as Util from "../utils";
 import * as Models from "./models";
 import { IRepo } from "./repos";
-import * as Util from "../utils";
 
 export interface IService {
   register(model: Models.IUserRegistration | undefined): Promise<Models.IUser>;
@@ -33,11 +33,11 @@ export class Service implements IService {
         if (maybeUser) {
           throw Util.ErrorGenerators.requestValidation(this.USER_ALREADY_EXISTS);
         }
-        throw Util.Errors.LambdaError.internalError({ message: "[Auth.Service] error - If a user is not found, an error is thrown, so we should not get here." });
+        throw Util.Errors.LambdaError.internalError({ message: "[Auth.Service]::[register] error - If a user is not found, an error is thrown, so we should not get here." });
       }).catch(reason => {
         if (reason instanceof Util.Errors.LambdaError) {
           if (reason.type === Util.Errors.NOT_FOUND_ERR.type) {
-            return this._repo.put(data as any);
+            return this._repo.register(data as any);
           }
         }
         throw reason;

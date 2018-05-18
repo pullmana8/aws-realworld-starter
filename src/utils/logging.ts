@@ -75,7 +75,7 @@ export class Log implements ILog {
     if (locations.length > 2) {
       const location = locations[3];
       const scopeStart = location.indexOf("src/") + 4;
-      const scopeEnd = location.indexOf(".ts", scopeStart) + 1;
+      const scopeEnd = location.search(/\.[tj]s/) + 1; // + 1 to keep the .
       const scope = location.substring(scopeStart, scopeEnd).replace(/\//g, ".");
       const caller = location.substr(0, location.indexOf(" ("));
       outMessage += `[${scope}${caller}] `;

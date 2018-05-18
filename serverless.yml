@@ -2,7 +2,7 @@ service:
   name: realworld-api-spec
 
 plugins:
-  - serverless-webpack
+  - serverless-plugin-typescript
 
 provider:
   name: aws

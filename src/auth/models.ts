@@ -1,8 +1,16 @@
+import { APIGatewayEvent } from "aws-lambda";
+
 export const MODULE_TYPES = {
   Database: Symbol("AuthDatabaseProvider"),
   Repo: Symbol("AuthRepo"),
   Service: Symbol("AuthService")
 };
+
+export interface IDeleteUserRequest extends APIGatewayEvent {
+  pathParameters: {
+    email: string;
+  };
+}
 
 export interface IUser {
   email: string;
@@ -26,9 +34,11 @@ export interface IUserProfile extends IUser {
  * @export
  * @interface IUserStored
  */
-export interface IUserStored {
+export interface IUserStored extends IUser {
   passwordHash: string;
   passwordSalt: string;
+  createTime?: number;
+  updateTime?: number;
 }
 
 export enum UserPrivateProperties {

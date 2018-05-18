@@ -15,13 +15,22 @@ function getEnvVar(name: string, defaults?: any): string {
   return value || "";
 }
 
-function safeJsonParse<T>(input: string): T | undefined {
+function safeJsonParse<T>(input: string, location?: string): T | undefined {
   try {
     return JSON.parse(input);
   } catch (err) {
-    Logging.Logger.error(`[Utils.safeJsonParse] error - ${err}`);
+    Logging.Logger.error(`${location}[Utils.safeJsonParse] error - ${err}`);
   }
   return undefined;
+}
+
+function safeDecodeUri(input: string, location?: string): string {
+  try {
+    return decodeURI(input);
+  } catch (err) {
+    Logging.Logger.error(`${location}[Utils.safeDecodeUri] error - ${err}`);
+  }
+  return input;
 }
 
 const ErrorGenerators = {
@@ -34,4 +43,4 @@ const ErrorGenerators = {
   deleteDataFailed: Errors.LambdaError.deleteDataFailed
 };
 
-export { ErrorGenerators, Errors, Dynamo, getEnvVar, safeJsonParse };
+export { ErrorGenerators, Errors, Dynamo, getEnvVar, safeJsonParse, safeDecodeUri };

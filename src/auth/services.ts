@@ -5,6 +5,7 @@ import * as Models from "./models";
 import { IRepo } from "./repos";
 
 export interface IService {
+  del(email: string): Promise<string>;
   register(model: Models.IUserRegistration | undefined): Promise<Models.IUser>;
 }
 
@@ -21,7 +22,11 @@ export class Service implements IService {
     @inject(Models.MODULE_TYPES.Repo) private _repo: IRepo
   ) { }
 
-  public register(data: Models.IUserRegistration | undefined): Promise<Models.IUser> {
+  del(email: string): Promise<string> {
+    return this._repo.del(email).then(() => "Success");
+  }
+
+  register(data: Models.IUserRegistration | undefined): Promise<Models.IUser> {
     if (data === null || data === undefined) {
       throw Util.ErrorGenerators.requestValidation(this.MISSING_REGISTRATION_INFO);
     }
@@ -44,7 +49,7 @@ export class Service implements IService {
       });
   }
 
-  // public get(id: string): Promise<IUser> {
+  // get(id: string): Promise<IUser> {
   //   // Sample throw logic
   //   if (id == "error") {
   //     throw Util.Errors.LambdaError.requestUnauthorizedError("Access Error");
@@ -52,15 +57,15 @@ export class Service implements IService {
   //   return this._repo.get(id);
   // }
 
-  // // public list(): Promise<IModel[]> {
+  // // list(): Promise<IModel[]> {
   // //     return this._repo.list();
   // // }
 
-  // public del(id: string): Promise<void> {
+  // del(id: string): Promise<void> {
   //   return this._repo.del(id);
   // }
 
-  // public put(model: IUser): Promise<IUser> {
+  // put(model: IUser): Promise<IUser> {
   //   this.validate(model);
   //   return this.get(model.id).then(
   //     () => this._repo.put(model)

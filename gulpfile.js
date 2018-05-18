@@ -6,9 +6,10 @@ var endpoint;
 
 gulp.task('getEndpoint', function (cb) {
   exec('serverless info', function (err, stdout, stderr) {
-    var start = stdout.indexOf("POST - ") + 7;
-    var end = stdout.indexOf("dev/") + 4;
-    endpoint = stdout.substring(start, end);
+    // console.log(stdout);
+    reg = new RegExp("(https://.+/dev/)").exec(stdout);
+    endpoint = reg[0];
+    // console.log(endpoint);
     cb(err);
   });
 });

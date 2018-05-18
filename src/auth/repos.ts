@@ -5,9 +5,9 @@ import * as Utils from "../utils";
 import * as Models from "./models";
 
 export interface IRepo {
-  register(user: Models.IUserRegistration): Promise<Models.IUser>;
+  del(email: string): Promise<void>;
   get(email: string): Promise<Models.IUser | undefined>;
-  // del(email: string): Promise<void>;
+  register(user: Models.IUserRegistration): Promise<Models.IUser>;
   // put(model: Models.IUser): Promise<Models.IUser>;
 }
 
@@ -18,6 +18,19 @@ export class Repo implements IRepo {
   constructor(
     @inject(Models.MODULE_TYPES.Database) private _table: Utils.Dynamo.IDynamoTable
   ) { }
+
+  del(email: string): Promise<void> {
+    return this.get(email)
+      .then((data: any) => {
+        const user = data as Models.IUserStored;
+        if (user) {
+          this._table.del({ email: user.email, createTime: user.createTime })
+            .catch(err => {
+              throw Utils.ErrorGenerators.deleteDataFailed({ message: `[Auth.repo]::[del] error - ${err}` });
+            });
+        }
+      });
+  }
 
   get(email: string): Promise<Models.IUser | undefined> {
     return this._table.get('email = :email', { ':email': email })
@@ -33,13 +46,6 @@ export class Repo implements IRepo {
         .then(stored => cleanPrivateProperties(stored));
     });
   }
-
-  // del(email: string): Promise<void> {
-  //   return this.get(email)
-  //     .then(_model => {
-  //       // this._table.delete({ id: model.id, createTime: model.createTime }
-  //     });
-  // }
 
   // put(model: Models.IUser): Promise<Models.IUser> {
   //   return this._table.put(model);

@@ -69,7 +69,7 @@ describe('Dynamo Table Wrapper', () => {
       (callback as any)(null, result);
       return generateDummyRequest();
     };
-    return dtw.delete({ "mock-key": "mock-val" }).then(() => {
+    return dtw.del({ "mock-key": "mock-val" }).then(() => {
       chai.expect(result).to.equal("mock-delete");
     });
   });
@@ -81,7 +81,7 @@ describe('Dynamo Table Wrapper', () => {
       (callback as any)(err, null);
       return generateDummyRequest();
     };
-    return dtw.delete({ "mock-key": "mock-val" }).catch(reason => {
+    return dtw.del({ "mock-key": "mock-val" }).catch(reason => {
       chai.expect(JSON.stringify(
         reason
       )).to.equal(JSON.stringify(

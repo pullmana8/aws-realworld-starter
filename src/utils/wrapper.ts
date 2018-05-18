@@ -1,5 +1,5 @@
 import { Context, APIGatewayEvent } from "aws-lambda";
-import { LambdaError } from "./errors";
+import * as Errors from "./errors";
 import { Logger } from "./logging";
 
 export function wrapFunction(func: (event: APIGatewayEvent) => Promise<any>): (event: APIGatewayEvent, context: Context, callback: AWSLambda.Callback) => void {
@@ -11,7 +11,7 @@ export function wrapFunction(func: (event: APIGatewayEvent) => Promise<any>): (e
           body: JSON.stringify(data)
         });
       }).catch((reason: any) => {
-        if (reason instanceof LambdaError) {
+        if (reason instanceof Errors.LambdaError) {
           Logger.error('Lambda error', reason);
           callback(null, reason.toLambda());
         } else {
@@ -20,14 +20,14 @@ export function wrapFunction(func: (event: APIGatewayEvent) => Promise<any>): (e
           callback(null, {
             statusCode: 500,
             body: JSON.stringify({
-              message: 'An internal error occurred',
-              type: 'internalError'
+              message: Errors.INTERNAL_ERR.message,
+              type: Errors.INTERNAL_ERR.type.internalError
             })
           });
         }
       });
     } catch (e) {
-      if (e instanceof LambdaError) {
+      if (e instanceof Errors.LambdaError) {
         Logger.error('Uncaught Lambda error', e);
         callback(null, e.toLambda());
       } else {
@@ -35,8 +35,8 @@ export function wrapFunction(func: (event: APIGatewayEvent) => Promise<any>): (e
         callback(null, {
           statusCode: 500,
           body: JSON.stringify({
-            message: 'An internal error occurred',
-            type: 'internalError'
+            message: Errors.INTERNAL_ERR.message,
+            type: Errors.INTERNAL_ERR.type.internalError
           })
         });
       }

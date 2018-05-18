@@ -1,38 +1,116 @@
+import "reflect-metadata";
 import chai = require("chai");
-import { agent } from "supertest";
+import * as supertest from "supertest";
+import { check422Expectations } from "./module.unit.spec";
 import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
+import { LambdaError } from "../../../src/utils/errors";
 import { IUser, IUserRegistration } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = agent("[[ENDPOINT]]");
+const request = supertest.agent("[[ENDPOINT]]");
 
-function register(userReg: IUserRegistration): Promise<IUser> {
+function register(userReg: any): Promise<supertest.Response> {
+  return superPromise('post', 'api/users', userReg);
+}
+
+function superPromise(method: string, endpoint: string, body?: any): Promise<supertest.Response> {
   return new Promise((resolve, reject) => {
-    request
-      .post('api/users')
-      .send(userReg)
+    const stt: supertest.Test = (request as any)[method](endpoint);
+    stt.send(body)
       .set('accept', 'json')
-      .expect(200)
-      .end((err, res) => {
+      .end((err: any, res: supertest.Response) => {
         if (err) {
-          console.log(err);
           reject(err);
-          return;
+        } else {
+          resolve(res);
         }
-        resolve(res.body);
       });
   });
 }
 
 describe('Register User Scenarios', () => {
 
+  describe('Validation scenarios', () => {
+    it('Should prevent undefined registration information', () => {
+      return register(undefined)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Missing user registration information");
+        });
+    });
+    it('Should prevent null registration information', () => {
+      return register(null)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Missing user registration information");
+        });
+    });
+    it('Should prevent registration with missing fields', () => {
+      const data: IUserRegistration = {
+        email: "",
+        password: "",
+        username: ""
+      };
+      return register(data)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Email, password, or username was not provided");
+        });
+    });
+
+    it('Should prevent registration with missing email', () => {
+      const data: IUserRegistration = {
+        email: "",
+        password: "1234",
+        username: "3456"
+      };
+      return register(data)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Email, password, or username was not provided");
+        });
+    });
+
+    it('Should prevent registration with missing password', () => {
+      const data: IUserRegistration = {
+        email: "1234",
+        password: "",
+        username: "3456"
+      };
+      return register(data)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Email, password, or username was not provided");
+        });
+    });
+
+    it('Should prevent registration with missing username', () => {
+      const data: IUserRegistration = {
+        email: "1234",
+        password: "567",
+        username: ""
+      };
+      return register(data)
+        .then(response => {
+          chai.expect(response.status).to.equal(422);
+          check422Expectations(createLambdaError(response.body), "Email, password, or username was not provided");
+        });
+    });
+
+    function createLambdaError(js: any): LambdaError {
+      return new LambdaError(422, js.type, js.errors.body[0]);
+    }
+  });
+
   describe('Success scenarios', () => {
 
     it('Should successfully register a user', () => {
       return catchChaiAssertionFailures(Promise.resolve())
         .then(() => register({ email: "a@a.com", password: "1234", username: "abc123" }))
-        .then(res => {
+        .then(response => {
+          const res = response.body as IUser;
+          chai.expect(response.status).to.equal(200);
           chai.expect(res).to.not.equal(undefined);
           chai.expect(res).to.not.equal(null);
           chai.expect(res.email).to.equal("a@a.com");
@@ -42,23 +120,16 @@ describe('Register User Scenarios', () => {
           chai.expect(res.username).to.equal("abc123");
         });
     });
+  });
 
-    // it('Throw 404 not found', () => {
-    //   return catchChaiAssertionFailures(Promise.resolve())
-    //     .then(() => request.get('does-not-exist').send())
-    //     .then(res => {
-    //       chai.expect(res.status).to.be.equal(404, "Expected Status Code 404 Not Found");
-    //     });
-    // });
-
-    // it('Throw for an invalid Model', () => {
-    //   return catchChaiAssertionFailures(Promise.resolve())
-    //     .then(() => request.get('error').send())
-    //     .then(res => {
-    //       chai.expect(res.status).to.be.equal(401, "Expected Status Code 401 Not Authorized");
-    //       chai.expect(JSON.stringify(res.body)).to.be.equal('{"errors":{"body":["Access Error"]},"type":"requestUnauthorizedError"}');
-    //     });
-    // });
+  describe('Cleanup', () => {
+    it('Should delete the registered users', () => {
+      return catchChaiAssertionFailures(Promise.resolve())
+        .then(() => superPromise("del", encodeURI("api/users/a@a.com")))
+        .then(response => {
+          chai.expect(response.status).to.equal(200);
+        });
+    });
   });
 
 });

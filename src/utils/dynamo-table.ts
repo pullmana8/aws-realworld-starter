@@ -14,7 +14,7 @@ export interface IDynamoDBDocumentClient {
 export interface IDynamoTable {
   documentClient: IDynamoDBDocumentClient;
   settings: IDynamoSettings;
-  delete(key: { [name: string]: any }): Promise<any>;
+  del(key: { [name: string]: any }): Promise<any>;
   get(keyConditionExpression: string, expressionAttributeValues: { [name: string]: any }): Promise<any[]>;
   put(data: any): Promise<any>;
 }
@@ -36,7 +36,7 @@ export class DynamoTableWrapper implements IDynamoTable {
   public settings: IDynamoSettings;
   public documentClient: IDynamoDBDocumentClient;
 
-  delete(key: { [name: string]: any }): Promise<void> {
+  del(key: { [name: string]: any }): Promise<void> {
     return new Promise((resolve, reject) => {
       this.documentClient.delete({
         TableName: this.settings.table.name,

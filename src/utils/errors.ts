@@ -28,7 +28,8 @@ export enum INTERNAL_ERR_TYPES {
 
 export const INTERNAL_ERR = {
   code: 500,
-  type: INTERNAL_ERR_TYPES
+  type: INTERNAL_ERR_TYPES,
+  message: 'An internal error occurred'
 };
 
 export interface ILambdaError {

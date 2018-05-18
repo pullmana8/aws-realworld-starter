@@ -1,5 +1,5 @@
 {
-  "name": "aws-ts-starter",
+  "name": "aws-realworld-starter",
   "version": "1.0.0",
   "description": "AWS Serverless typescript starter kit using webpack",
   "scripts": {
@@ -27,7 +27,7 @@
   },
   "author": "Russ Watson",
   "repository": {
-    "url": "https://github.com/bakerstreet-industries/aws-ts-starter.git"
+    "url": "https://github.com/bakerstreet-industries/aws-realworld-starter.git"
   },
   "license": "MIT",
   "dependencies": {
@@ -62,6 +62,7 @@
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.3",
-    "webpack": "^3.11.0"
+    "webpack": "^3.11.0",
+    "webpack-node-externals": "^1.7.2"
   }
 }

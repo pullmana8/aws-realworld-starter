@@ -24,6 +24,16 @@ package:
   excludeDevDependencies: true
 
 functions:
+  del:
+    handler: src/auth/handler.del
+    environment:
+      AUTH_TABLE_NAME: ${self:provider.environment.AUTH_TABLE}
+      AUTH_TABLE_ADD_TIMESTAMPS: TRUE
+    events:
+      - http:
+          method: delete
+          path: api/users/{email}
+          cors: true
   register:
     handler: src/auth/handler.register
     environment:

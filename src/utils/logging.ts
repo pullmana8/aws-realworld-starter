@@ -71,6 +71,7 @@ export class Log implements ILog {
 
     const stack = new Error("").stack || "";
     const locations = stack.split("at ");
+    console.log("locations:", locations);
     if (locations.length > 2) {
       const location = locations[3];
       const scopeStart = location.indexOf("src/") + 4;

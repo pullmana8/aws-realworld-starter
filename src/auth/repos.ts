@@ -6,8 +6,9 @@ import * as Models from "./models";
 
 export interface IRepo {
   del(email: string): Promise<void>;
-  get(email: string): Promise<Models.IUser | undefined>;
-  register(user: Models.IUserRegistration): Promise<Models.IUser>;
+  get(email: string): Promise<Models.IUser>;
+  login(user: Models.IUserAuth): Promise<Models.IUser>;
+  register(user: Models.IUserAuth): Promise<Models.IUser>;
   // put(model: Models.IUser): Promise<Models.IUser>;
 }
 
@@ -32,24 +33,47 @@ export class Repo implements IRepo {
       });
   }
 
-  get(email: string): Promise<Models.IUser | undefined> {
-    return this._table.get('email = :email', { ':email': email })
-      .then(items => items.length > 0 ? items[0] : undefined)
-      .then(item => cleanPrivateProperties(item));
+  get(email: string): Promise<Models.IUser> {
+    return _internalGet(this._table, email)
+      .then(item => cleanPrivateProperties<Models.IUser>(item as Models.IUserStored));
   }
 
-  register(user: Models.IUserRegistration): Promise<Models.IUser> {
+  login(user: Models.IUserAuth): Promise<Models.IUser> {
+    return _internalGet(this._table, user.email)
+      .then(storedUser => {
+        return _createPasswordHash(user.password, storedUser.passwordSalt)
+          .then(generated => {
+            if (generated.passwordHash !== storedUser.passwordHash) {
+              throw Utils.ErrorGenerators.requestUnauthorizedError("The username or password is invalid");
+            }
+            return cleanPrivateProperties<Models.IUser>(storedUser);
+          });
+      });
+  }
+
+  register(user: Models.IUserAuth): Promise<Models.IUser> {
     return _createPasswordHash(user.password, _createSalt()).then(result => {
-      const toStore: Models.IUserStored & Models.IUserRegistration = Object.assign(user, result);
-      cleanPrivateProperties(toStore, [Models.UserPrivateProperties.password]);
+      const toStore: Models.IUserStored & Models.IUserAuth = Object.assign(user, result);
+      cleanPrivateProperties<Models.IUserStored>(toStore, [Models.UserPrivateProperties.password]);
       return this._table.put(toStore)
-        .then(stored => cleanPrivateProperties(stored));
+        .then(stored => cleanPrivateProperties<Models.IUser>(stored));
     });
   }
 
   // put(model: Models.IUser): Promise<Models.IUser> {
   //   return this._table.put(model);
   // }
+}
+
+function _internalGet(table: Utils.Dynamo.IDynamoTable, email: string): Promise<Models.IUserStored> {
+  return table.get('email = :email', { ':email': email })
+    .then(items => {
+      try {
+        return items[0];
+      } catch (err) {
+        throw Utils.ErrorGenerators.internalError({ message: `[Auth.Repo]::[_internalGet] Assumption of not found errors being rejected is no longer true: ${err}` });
+      }
+    });
 }
 
 function _createSalt(): string {
@@ -76,9 +100,7 @@ function _createPasswordHash(password: string, passwordSalt: string): Promise<{ 
  * @param {*} item
  * @returns {*}
  */
-function cleanPrivateProperties(item: Models.IUserStored | undefined, toRemove: Models.UserPrivateProperties[] = Models.USER_PRIVATE_PROPERTIES): any {
-  if (item) {
-    toRemove.forEach(pp => delete (item as any)[pp]);
-  }
-  return item;
+function cleanPrivateProperties<T>(item: Models.IUserStored, toRemove: Models.UserPrivateProperties[] = Models.USER_PRIVATE_PROPERTIES): T {
+  toRemove.forEach(pp => delete (item as any)[pp]);
+  return item as any;
 }

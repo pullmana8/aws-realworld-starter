@@ -14,10 +14,10 @@ export interface IDeleteUserRequest extends APIGatewayEvent {
 
 export interface IUser {
   email: string;
-  username: string;
+  username?: string;
 }
 
-export interface IUserRegistration extends IUser {
+export interface IUserAuth extends IUser {
   password: string;
 }
 

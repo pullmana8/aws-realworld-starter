@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import chai = require("chai");
 import * as supertest from "supertest";
-import { check422Expectations } from "./module.unit.spec";
+import { check422Expectations } from "../../util/fns.spec";
 import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
 import { LambdaError } from "../../../src/utils/errors";
-import { IUser, IUserRegistration } from "../../../src/auth/models";
+import { IUser, IUserAuth } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
@@ -36,18 +36,18 @@ describe('Register User Scenarios', () => {
       return register(undefined)
         .then(response => {
           chai.expect(response.status).to.equal(422);
-          check422Expectations(createLambdaError(response.body), "Missing user registration information");
+          check422Expectations(createLambdaError(response.body), "Missing user information");
         });
     });
     it('Should prevent null registration information', () => {
       return register(null)
         .then(response => {
           chai.expect(response.status).to.equal(422);
-          check422Expectations(createLambdaError(response.body), "Missing user registration information");
+          check422Expectations(createLambdaError(response.body), "Missing user information");
         });
     });
     it('Should prevent registration with missing fields', () => {
-      const data: IUserRegistration = {
+      const data: IUserAuth = {
         email: "",
         password: "",
         username: ""
@@ -60,7 +60,7 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing email', () => {
-      const data: IUserRegistration = {
+      const data: IUserAuth = {
         email: "",
         password: "1234",
         username: "3456"
@@ -73,7 +73,7 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing password', () => {
-      const data: IUserRegistration = {
+      const data: IUserAuth = {
         email: "1234",
         password: "",
         username: "3456"
@@ -86,7 +86,7 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing username', () => {
-      const data: IUserRegistration = {
+      const data: IUserAuth = {
         email: "1234",
         password: "567",
         username: ""
@@ -122,14 +122,24 @@ describe('Register User Scenarios', () => {
     });
   });
 
-  describe('Cleanup', () => {
-    it('Should delete the registered users', () => {
-      return catchChaiAssertionFailures(Promise.resolve())
-        .then(() => superPromise("del", encodeURI("api/users/a@a.com")))
-        .then(response => {
-          chai.expect(response.status).to.equal(200);
-        });
-    });
-  });
+});
 
+describe('Login User Scenarios', () => {
+  it('Should successfully login', () => {
+    return catchChaiAssertionFailures(Promise.resolve())
+      .then(() => superPromise('post', 'api/users/login', { email: "a@a.com", password: "1234" }))
+      .then(response => {
+        chai.expect(response.status).to.equal(200);
+      });
+  });
+});
+
+describe('Cleanup', () => {
+  it('Should delete the registered users', () => {
+    return catchChaiAssertionFailures(Promise.resolve())
+      .then(() => superPromise("del", encodeURI("api/users/a@a.com")))
+      .then(response => {
+        chai.expect(response.status).to.equal(200);
+      });
+  });
 });

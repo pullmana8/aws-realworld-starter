@@ -6,7 +6,8 @@ import { IRepo } from "./repos";
 
 export interface IService {
   del(email: string): Promise<string>;
-  register(model: Models.IUserRegistration | undefined): Promise<Models.IUser>;
+  login(data: Models.IUserAuth | undefined): Promise<Models.IUser>;
+  register(model: Models.IUserAuth | undefined): Promise<Models.IUser>;
 }
 
 @log()
@@ -14,8 +15,9 @@ export interface IService {
 export class Service implements IService {
 
   // TODO: Locale :
-  protected MISSING_REGISTRATION_INFO = "Missing user registration information";
+  protected MISSING_USER_INFO = "Missing user information";
   protected MISSING_SPECIFIC_REG_FIELD = "Email, password, or username was not provided";
+  protected MISSING_SPECIFIC_LOGIN_FIELD = "Email or password was not provided";
   protected USER_ALREADY_EXISTS = "The provided email address is already registered";
 
   constructor(
@@ -26,19 +28,28 @@ export class Service implements IService {
     return this._repo.del(email).then(() => "Success");
   }
 
-  register(data: Models.IUserRegistration | undefined): Promise<Models.IUser> {
+  login(data: Models.IUserAuth | undefined): Promise<Models.IUser> {
     if (data === null || data === undefined) {
-      throw Util.ErrorGenerators.requestValidation(this.MISSING_REGISTRATION_INFO);
+      throw Util.ErrorGenerators.requestValidation(this.MISSING_USER_INFO);
+    }
+    if (!data.email || !data.password) {
+      throw Util.ErrorGenerators.requestValidation(this.MISSING_SPECIFIC_LOGIN_FIELD);
+    }
+
+    // Get will throw a 404 if the email is not registered in the system.
+    return this._repo.login(data);
+  }
+
+  register(data: Models.IUserAuth | undefined): Promise<Models.IUser> {
+    if (data === null || data === undefined) {
+      throw Util.ErrorGenerators.requestValidation(this.MISSING_USER_INFO);
     }
     if (!data.email || !data.password || !data.username) {
       throw Util.ErrorGenerators.requestValidation(this.MISSING_SPECIFIC_REG_FIELD);
     }
     return this._repo.get(data.email)
-      .then(maybeUser => {
-        if (maybeUser) {
-          throw Util.ErrorGenerators.requestValidation(this.USER_ALREADY_EXISTS);
-        }
-        throw Util.Errors.LambdaError.internalError({ message: "[Auth.Service]::[register] error - If a user is not found, an error is thrown, so we should not get here." });
+      .then(() => {
+        throw Util.ErrorGenerators.requestValidation(this.USER_ALREADY_EXISTS);
       }).catch(reason => {
         if (reason instanceof Util.Errors.LambdaError) {
           if (reason.type === Util.Errors.NOT_FOUND_ERR.type) {

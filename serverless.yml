@@ -13,7 +13,6 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:Query
-        - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
@@ -33,6 +32,16 @@ functions:
       - http:
           method: delete
           path: api/users/{email}
+          cors: true
+  login:
+    handler: src/auth/handler.login
+    environment:
+      AUTH_TABLE_NAME: ${self:provider.environment.AUTH_TABLE}
+      AUTH_TABLE_ADD_TIMESTAMPS: TRUE
+    events:
+      - http:
+          method: post
+          path: /api/users/login
           cors: true
   register:
     handler: src/auth/handler.register

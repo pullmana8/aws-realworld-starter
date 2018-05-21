@@ -7,8 +7,8 @@ import { APIGatewayEvent } from 'aws-lambda';
 import { Request } from 'aws-sdk/lib/request';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import { AWSError } from 'aws-sdk/lib/error';
+import { check422Expectations } from "../../util/fns.spec";
 import chai = require("chai");
-// import catchChaiAssertionFailures from '../../utils/tests/chai-assertion-catch';
 
 function generateDummyRequest(): Request<DocumentClient.DeleteItemOutput | DocumentClient.QueryOutput | DocumentClient.PutItemOutput, AWSError> {
   return {
@@ -87,7 +87,7 @@ isLoaded.then(() => {
     describe("Register function should throw 422 request validation errors", () => {
       it("Missing user registration inforamtion error message", () => {
         event.body = "";
-        return run422Expectations("Missing user registration information");
+        return run422Expectations("Missing user information");
       });
 
       it("Missing field provided error message", () => {
@@ -105,15 +105,3 @@ isLoaded.then(() => {
     }
   });
 });
-
-export function check422Expectations(le: LambdaError, errorMessage: string): void {
-  chai.expect(le).to.be.an.instanceof(LambdaError);
-  chai.expect(le.statusCode).to.equal(422);
-  chai.expect(le.type).to.equal("requestValidationError");
-  chai.expect(le.errors).to.not.equal(undefined);
-  chai.expect(le.errors).to.not.equal(null);
-  chai.expect(le.errors.body).to.not.equal(undefined);
-  chai.expect(le.errors.body).to.not.equal(null);
-  chai.expect(le.errors.body.length).to.equal(1);
-  chai.expect(le.errors.body[0]).to.equal(errorMessage);
-}

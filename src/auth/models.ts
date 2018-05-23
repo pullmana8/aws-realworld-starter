@@ -16,8 +16,7 @@ export interface IDeleteUserRequest extends APIGatewayEvent {
 export interface IUser {
   createTime?: number;
   email: string;
-  jwt?: string;
-  username?: string;
+  username: string;
 }
 
 export interface IUserAuth extends IUser {

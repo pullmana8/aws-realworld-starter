@@ -6,7 +6,7 @@ import { SSM, config } from "aws-sdk";
 import { check422Expectations } from "../../util/fns.spec";
 import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
 import { LambdaError } from "../../../src/utils/errors";
-import { IUser, IUserAuth } from "../../../src/auth/models";
+import { IUser, IUserAuth, IUserProfile } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
@@ -132,12 +132,12 @@ describe('Login User Scenarios', () => {
       .then(() => superPromise('post', 'api/users/login', { email: "a@a.com", password: "1234" }))
       .then(response => {
         chai.expect(response.status).to.equal(200);
-        const user: IUser = response.body;
+        const user: IUserProfile = response.body;
         chai.expect(user.email).to.equal("a@a.com");
         chai.expect(user.username).to.equal("abc123");
-        chai.expect(user.jwt).to.not.equal(undefined);
+        chai.expect(user.token).to.not.equal(undefined);
         try {
-          jwt.verify(user.jwt || "", "thisisnotthekeyyourelookingfor");
+          jwt.verify(user.token || "", "thisisnotthekeyyourelookingfor");
           throw new Error("This should not succeed, your key is `thisisnotthekeyyourelookingfor`. Really?");
         } catch (err) {
           chai.expect(err.message).to.equal("invalid signature");
@@ -162,7 +162,7 @@ describe('Login User Scenarios', () => {
             chai.expect(result.Parameter.Value).to.not.equal(undefined);
           }
           if (result && result.Parameter && result.Parameter.Value) {
-            const decoded: any = jwt.verify(user.jwt || "", result.Parameter.Value);
+            const decoded: any = jwt.verify(user.token || "", result.Parameter.Value);
             chai.expect(decoded.username).to.equal(user.username);
             chai.expect(decoded.email).to.equal(user.email);
             chai.expect(decoded.createTime).to.equal(user.createTime);
@@ -171,14 +171,14 @@ describe('Login User Scenarios', () => {
             // TODO: Look up config value; Assuming 30 minutes for now
             const expiration = new Date(now + 1800000).getTime();
 
-            // Within 4 seconds of when this test runs
+            // Within 6 seconds of when this test runs
             let start = Math.floor(new Date(now - 2000).getTime() / 1000);
-            let end = Math.floor(new Date(now + 2000).getTime() / 1000);
+            let end = Math.floor(new Date(now + 4000).getTime() / 1000);
             chai.expect(decoded.iat).to.be.greaterThan(start).and.lessThan(end);
 
-            // Within 4 seconds of when this test runs
+            // Within 6 seconds of when this test runs
             start = Math.floor(new Date(expiration - 2000).getTime() / 1000);
-            end = Math.floor(new Date(expiration + 2000).getTime() / 1000);
+            end = Math.floor(new Date(expiration + 4000).getTime() / 1000);
             chai.expect(decoded.exp).to.be.greaterThan(start).and.lessThan(end);
           }
         });

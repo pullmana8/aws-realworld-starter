@@ -49,12 +49,12 @@ export class Repo implements IRepo {
             if (generated.passwordHash !== storedUser.passwordHash) {
               throw Utils.ErrorGenerators.requestUnauthorizedError("The username or password is invalid");
             }
-            return cleanPrivateProperties<Models.IUser>(storedUser);
+            return cleanPrivateProperties<Models.IUserProfile>(storedUser);
           })
           .then(cleaned => {
             return generateJwt(cleaned, this._settings)
               .then(jwt => {
-                cleaned.jwt = jwt;
+                cleaned.token = jwt;
                 return cleaned;
               });
           });

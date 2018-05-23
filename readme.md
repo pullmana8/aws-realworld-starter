@@ -28,6 +28,9 @@
 4. Install the AWS CLI - `npm install -g aws`
 5. Install the Serverless CLI - `npm install -g serverless`
 6. Configure your AWS CLI - `aws configure`
+7. Create a JWT signing secret in the AWS System Manager's Parameter Store:
+    * Parameter name: `real-world-auth-jwt-secret`
+    * [![jwt-secret example](ssm.png)](https://console.aws.amazon.com/systems-manager/parameters/create?region=us-east-1)
 
 TODO: Serverless Generator
 

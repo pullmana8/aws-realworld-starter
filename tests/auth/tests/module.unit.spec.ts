@@ -8,7 +8,6 @@ import { Request } from 'aws-sdk/lib/request';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import { AWSError } from 'aws-sdk/lib/error';
 import { check422Expectations } from "../../util/fns.spec";
-import chai = require("chai");
 
 function generateDummyRequest(): Request<DocumentClient.DeleteItemOutput | DocumentClient.QueryOutput | DocumentClient.PutItemOutput, AWSError> {
   return {

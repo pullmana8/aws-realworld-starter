@@ -1,15 +1,16 @@
 import { injectable, inject } from "inversify";
 import * as crypto from "crypto";
 import log from "ts-log-class";
+import * as jwt from "jsonwebtoken";
 import * as Utils from "../utils";
 import * as Models from "./models";
+import * as Settings from "./settings";
 
 export interface IRepo {
   del(email: string): Promise<void>;
   get(email: string): Promise<Models.IUser>;
   login(user: Models.IUserAuth): Promise<Models.IUser>;
   register(user: Models.IUserAuth): Promise<Models.IUser>;
-  // put(model: Models.IUser): Promise<Models.IUser>;
 }
 
 @log()
@@ -17,7 +18,8 @@ export interface IRepo {
 export class Repo implements IRepo {
 
   constructor(
-    @inject(Models.MODULE_TYPES.Database) private _table: Utils.Dynamo.IDynamoTable
+    @inject(Models.MODULE_TYPES.Database) private _table: Utils.Dynamo.IDynamoTable,
+    @inject(Models.MODULE_TYPES.Settings) private _settings: Settings.ISettings
   ) { }
 
   del(email: string): Promise<void> {
@@ -41,12 +43,20 @@ export class Repo implements IRepo {
   login(user: Models.IUserAuth): Promise<Models.IUser> {
     return _internalGet(this._table, user.email)
       .then(storedUser => {
+        // Not chained since we need access to the stored user in this scope
         return _createPasswordHash(user.password, storedUser.passwordSalt)
           .then(generated => {
             if (generated.passwordHash !== storedUser.passwordHash) {
               throw Utils.ErrorGenerators.requestUnauthorizedError("The username or password is invalid");
             }
             return cleanPrivateProperties<Models.IUser>(storedUser);
+          })
+          .then(cleaned => {
+            return generateJwt(cleaned, this._settings)
+              .then(jwt => {
+                cleaned.jwt = jwt;
+                return cleaned;
+              });
           });
       });
   }
@@ -59,10 +69,6 @@ export class Repo implements IRepo {
         .then(stored => cleanPrivateProperties<Models.IUser>(stored));
     });
   }
-
-  // put(model: Models.IUser): Promise<Models.IUser> {
-  //   return this._table.put(model);
-  // }
 }
 
 function _internalGet(table: Utils.Dynamo.IDynamoTable, email: string): Promise<Models.IUserStored> {
@@ -84,7 +90,7 @@ function _createPasswordHash(password: string, passwordSalt: string): Promise<{ 
   return new Promise((resolve, reject) => {
     crypto.pbkdf2(password, passwordSalt, 10000, 512, "sha512", (err, derivedKey) => {
       if (err) {
-        reject(Utils.ErrorGenerators.internalError({ message: `[Auth.Service]::[_createPasswordHash] error - ${err}` }));
+        reject(Utils.ErrorGenerators.internalError({ message: `[Auth.Repo]::[_createPasswordHash] error - ${err}` }));
       } else {
         resolve({ passwordHash: derivedKey.toString("hex"), passwordSalt });
       }
@@ -103,4 +109,25 @@ function _createPasswordHash(password: string, passwordSalt: string): Promise<{ 
 function cleanPrivateProperties<T>(item: Models.IUserStored, toRemove: Models.UserPrivateProperties[] = Models.USER_PRIVATE_PROPERTIES): T {
   toRemove.forEach(pp => delete (item as any)[pp]);
   return item as any;
+}
+
+/**
+ * The user exchanges their password for a signed JWT authentication token.
+ *
+ * @param {Models.IUser} user
+ * @param {Settings.ISettings} settings
+ * @returns {Promise<string>}
+ */
+function generateJwt(user: Models.IUser, settings: Settings.ISettings): Promise<string> {
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      Object.assign({ exp: Math.floor(new Date().getTime() / 1000) + settings.tokenExpiration }, user), settings.tokenSecret,
+      (err: Error, encoded: string) => {
+        if (err) {
+          reject(Utils.ErrorGenerators.internalError({ message: `[Auth.Repo]::[generateJwt] ${err}` }));
+        } else {
+          resolve(encoded);
+        }
+      });
+  });
 }

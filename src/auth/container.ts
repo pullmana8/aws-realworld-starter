@@ -4,25 +4,20 @@ import * as Utils from './../utils';
 import * as Models from "./models";
 import * as Repos from "./repos";
 import * as Services from "./services";
-import * as Settings from "./settings";
+import { Settings, ISettings } from "./settings";
 
 type DatabaseProvider = () => Promise<Utils.Dynamo.IDynamoTable>;
 const DATABASE_PROVIDER_KEY = Symbol("AuthDbProvider");
 
 const containerModule = new ContainerModule(bind => {
+  bind(Models.MODULE_TYPES.Settings).to(Settings).inSingletonScope();
   bind(DATABASE_PROVIDER_KEY).toProvider<Utils.Dynamo.IDynamoTable>(context => {
     return () => {
       return Promise.resolve().then(() => {
         const table = context.container.get<Utils.Dynamo.IDynamoTable>(Utils.Dynamo.WRAPPER_KEY);
+        const settings = context.container.get<ISettings>(Models.MODULE_TYPES.Settings);
         table.documentClient = new DynamoDB.DocumentClient();
-        const envIdFields = Utils.getEnvVar(Settings.EnvVars.AuthTableIdFields);
-        table.settings = {
-          addTimestamps: Utils.getEnvVar(Settings.EnvVars.AuthTableAddTimestamps, Settings.DEFAULTS).toUpperCase() === "TRUE",
-          table: {
-            name: Utils.getEnvVar(Settings.EnvVars.AuthTableName, Settings.DEFAULTS),
-            idFields: (envIdFields ? envIdFields : Settings.DEFAULTS.table.idFields).split(",")
-          }
-        };
+        table.settings = settings;
         return table;
       });
     };

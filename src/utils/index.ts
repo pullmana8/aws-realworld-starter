@@ -5,7 +5,7 @@ import * as Logging from "./logging";
 function getEnvVar(name: string, defaults?: any): string {
   let value = defaults ? defaults[name] : "";
   if (process.env[name]) {
-    let msg = `Getting key, ${name}, from environmental variable with value, ${process.env[name]}`;
+    let msg = `Getting key, ${name}, from environment variable with value, ${process.env[name]}`;
     if (value) {
       msg += `; overriding ${value}`;
     }
@@ -43,4 +43,4 @@ const ErrorGenerators = {
   deleteDataFailed: Errors.LambdaError.deleteDataFailed
 };
 
-export { ErrorGenerators, Errors, Dynamo, getEnvVar, safeJsonParse, safeDecodeUri };
+export { ErrorGenerators, Errors, Dynamo, getEnvVar, safeJsonParse, safeDecodeUri, Logging };

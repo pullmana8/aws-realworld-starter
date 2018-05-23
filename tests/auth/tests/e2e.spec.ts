@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import chai = require("chai");
 import * as supertest from "supertest";
+import * as jwt from "jsonwebtoken";
+import { SSM, config } from "aws-sdk";
 import { check422Expectations } from "../../util/fns.spec";
 import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
 import { LambdaError } from "../../../src/utils/errors";
@@ -130,6 +132,56 @@ describe('Login User Scenarios', () => {
       .then(() => superPromise('post', 'api/users/login', { email: "a@a.com", password: "1234" }))
       .then(response => {
         chai.expect(response.status).to.equal(200);
+        const user: IUser = response.body;
+        chai.expect(user.email).to.equal("a@a.com");
+        chai.expect(user.username).to.equal("abc123");
+        chai.expect(user.jwt).to.not.equal(undefined);
+        try {
+          jwt.verify(user.jwt || "", "thisisnotthekeyyourelookingfor");
+          throw new Error("This should not succeed, your key is `thisisnotthekeyyourelookingfor`. Really?");
+        } catch (err) {
+          chai.expect(err.message).to.equal("invalid signature");
+        }
+        return new Promise((resolve, reject) => {
+          config.region = "us-east-1";
+          new SSM().getParameter({
+            Name: "real-world-auth-jwt-secret", WithDecryption: true
+          }, (err, result) => {
+            if (err) {
+              reject(err);
+            }
+            resolve(result);
+          });
+        }).then((result: SSM.Types.GetParameterResult) => {
+          chai.expect(result).to.not.equal(undefined);
+          chai.expect(result).to.not.equal(null);
+          chai.expect(result.Parameter).to.not.equal(undefined);
+
+          // Conditionals to ignore Typescript compile errors on potentially undefined values
+          if (result && result.Parameter) {
+            chai.expect(result.Parameter.Value).to.not.equal(undefined);
+          }
+          if (result && result.Parameter && result.Parameter.Value) {
+            const decoded: any = jwt.verify(user.jwt || "", result.Parameter.Value);
+            chai.expect(decoded.username).to.equal(user.username);
+            chai.expect(decoded.email).to.equal(user.email);
+            chai.expect(decoded.createTime).to.equal(user.createTime);
+
+            const now = new Date().getTime();
+            // TODO: Look up config value; Assuming 30 minutes for now
+            const expiration = new Date(now + 1800000).getTime();
+
+            // Within 4 seconds of when this test runs
+            let start = Math.floor(new Date(now - 2000).getTime() / 1000);
+            let end = Math.floor(new Date(now + 2000).getTime() / 1000);
+            chai.expect(decoded.iat).to.be.greaterThan(start).and.lessThan(end);
+
+            // Within 4 seconds of when this test runs
+            start = Math.floor(new Date(expiration - 2000).getTime() / 1000);
+            end = Math.floor(new Date(expiration + 2000).getTime() / 1000);
+            chai.expect(decoded.exp).to.be.greaterThan(start).and.lessThan(end);
+          }
+        });
       });
   });
 });

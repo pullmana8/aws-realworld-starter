@@ -9,6 +9,8 @@ provider:
   runtime: nodejs6.10
   environment:
     AUTH_TABLE: dynamo-table-${self:service}-${opt:stage, self:provider.stage}
+    AUTH_TABLE_JWT_SECRET: ${ssm:real-world-auth-jwt-secret~true}
+    AUTH_TABLE_JWT_EXPIRATION: 1800
   iamRoleStatements:
     - Effect: Allow
       Action:

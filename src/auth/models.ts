@@ -3,7 +3,8 @@ import { APIGatewayEvent } from "aws-lambda";
 export const MODULE_TYPES = {
   Database: Symbol("AuthDatabaseProvider"),
   Repo: Symbol("AuthRepo"),
-  Service: Symbol("AuthService")
+  Service: Symbol("AuthService"),
+  Settings: Symbol("AuthSettings")
 };
 
 export interface IDeleteUserRequest extends APIGatewayEvent {
@@ -13,7 +14,9 @@ export interface IDeleteUserRequest extends APIGatewayEvent {
 }
 
 export interface IUser {
+  createTime?: number;
   email: string;
+  jwt?: string;
   username?: string;
 }
 

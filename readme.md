@@ -52,4 +52,4 @@ A public place to display code coverage of your API. Add this Environment Variab
 
 Unit tests can be run via `npm test`. If you have never run the end to end tests, or have code changes that need to be deployed before running the end to end tests, use `npm run test:e2e:deploy`, otherwise to execute the end to end tests of what is deployed to your serverless provider, use `npm run test:e2e`.
 
-`Note: ` that wheny you run the deploy routine, it will run a gulp task that will automatically replace the token `[[ENDPOINT]]` in each e2e test file and replace it with the base URL of the deployed AWS api gateway.
+`Note: ` that when you run the deploy routine, it will run a gulp task that will automatically replace the token `[[ENDPOINT]]` in each e2e test file and replace it with the base URL of the deployed AWS api gateway.

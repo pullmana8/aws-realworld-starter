@@ -15,7 +15,7 @@ gulp.task('getEndpoint', function (cb) {
 });
 
 gulp.task('default', ["getEndpoint"], function () {
-  gulp.src(["./tests/**/e2e.spec.ts"])
+  gulp.src(["./tests/**/e2e.spec.ts", "./tests/**/env*.postman.json"])
     .pipe(replace(/\[\[ENDPOINT\]\]/g, endpoint))
     .pipe(gulp.dest('./tests/'))
 });

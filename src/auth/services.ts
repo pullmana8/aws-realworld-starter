@@ -35,8 +35,6 @@ export class Service implements IService {
     if (!data.email || !data.password) {
       throw Util.ErrorGenerators.requestValidation(this.MISSING_SPECIFIC_LOGIN_FIELD);
     }
-
-    // Get will throw a 404 if the email is not registered in the system.
     return this._repo.login(data);
   }
 

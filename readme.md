@@ -13,8 +13,8 @@
 `aws-realworld-starter` is a [serverless](https://serverless.com/) seed written in Typescript that provides the following out of the box:
 
 * Follows [The Repository Pattern](https://msdn.microsoft.com/en-us/library/ff649690.aspx)
-* Structured and intended to be used as a microservice
-* 100% unit test coverage of all boilerplate module code to encourage BDD/TDD
+* Structured in a way to have features carved out into microservices
+* Strives for 100% unit test coverage to encourage BDD/TDD
 * Fully functional end-to-end testing of the RealWorld API spec via a Serverless YAML
 * A default Repository implementation against a Dynamo DB
 * An AWS handler wrapper that takes care of the API Gateway callback and error handling, either by thrown errors or by caught promises
@@ -22,14 +22,13 @@
 # Getting started
 
 1. Fork / Clone this repository
-2. `npm install`
-3. Replace `module` and `Module` with the name of your api
-    * e.g. `ModuleService` => `PetService`; `ModuleRepo` => `PetRepo`
-4. Install the AWS CLI - `npm install -g aws`
-5. Install the Serverless CLI - `npm install -g serverless`
-6. Configure your AWS CLI - `aws configure`
-7. Create a JWT signing secret in the AWS System Manager's Parameter Store:
+1. Install the AWS CLI - `npm install -g aws`
+1. Install the Serverless CLI - `npm install -g serverless`
+1. Run `npm install` in your working directory
+1. Configure your AWS CLI - `aws configure` with your `aws_access_key_id` and `aws_secret_access_key`
+1. Create a JWT signing secret in the AWS System Manager's Parameter Store:
     * Parameter name: `real-world-auth-jwt-secret`
+    * Gogo: https://console.aws.amazon.com/systems-manager/parameters/create?region=us-east-1
     * [![jwt-secret example](ssm.png)](https://console.aws.amazon.com/systems-manager/parameters/create?region=us-east-1)
 
 TODO: Serverless Generator

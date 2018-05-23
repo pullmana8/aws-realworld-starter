@@ -10,7 +10,7 @@ import { IUser, IUserAuth } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = supertest.agent("[[ENDPOINT]]");
+const request = supertest.agent("https://xh0v7rc5p5.execute-api.us-east-1.amazonaws.com/dev/");
 
 function register(userReg: any): Promise<supertest.Response> {
   return superPromise('post', 'api/users', userReg);

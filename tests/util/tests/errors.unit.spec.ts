@@ -39,4 +39,18 @@ describe('LambdaError', () => {
     chai.expect(lambda.statusCode).to.equal(500);
   });
 
+  it("Should return an Unauthorized request Error", () => {
+    le = Errors.LambdaError.requestUnauthorizedError('Some Unauthorized Error Message');
+    chai.expect(le.errors.body[0]).to.equal("Some Unauthorized Error Message");
+    chai.expect(le.statusCode).to.equal(401);
+    chai.expect(le.type).to.equal("requestUnauthorizedError");
+  });
+
+  it("Should return a Forbidden request Error", () => {
+    le = Errors.LambdaError.requestForbiddenError('Some Forbidden Error Message');
+    chai.expect(le.errors.body[0]).to.equal("Some Forbidden Error Message");
+    chai.expect(le.statusCode).to.equal(403);
+    chai.expect(le.type).to.equal("requestForbiddenError");
+  });
+
 });

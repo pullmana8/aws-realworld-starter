@@ -8,9 +8,9 @@ import * as Settings from "./settings";
 
 export interface IRepo {
   del(email: string): Promise<void>;
-  get(email: string): Promise<Models.IUser>;
-  login(user: Models.IUserAuth): Promise<Models.IUser>;
-  register(user: Models.IUserAuth): Promise<Models.IUser>;
+  get(email: string): Promise<Models.IUserProfile>;
+  login(user: Models.IUserAuth): Promise<Models.IUserProfile>;
+  register(user: Models.IUserAuth): Promise<Models.IUserProfile>;
 }
 
 @log()
@@ -35,12 +35,12 @@ export class Repo implements IRepo {
       });
   }
 
-  get(email: string): Promise<Models.IUser> {
+  get(email: string): Promise<Models.IUserProfile> {
     return _internalGet(this._table, email)
-      .then(item => cleanPrivateProperties<Models.IUser>(item as Models.IUserStored));
+      .then(item => cleanPrivateProperties<Models.IUserProfile>(item as Models.IUserStored));
   }
 
-  login(user: Models.IUserAuth): Promise<Models.IUser> {
+  login(user: Models.IUserAuth): Promise<Models.IUserProfile> {
     return _internalGet(this._table, user.email)
       .then(storedUser => {
         // Not chained since we need access to the stored user in this scope
@@ -61,12 +61,12 @@ export class Repo implements IRepo {
       });
   }
 
-  register(user: Models.IUserAuth): Promise<Models.IUser> {
+  register(user: Models.IUserAuth): Promise<Models.IUserProfile> {
     return _createPasswordHash(user.password, _createSalt()).then(result => {
       const toStore: Models.IUserStored & Models.IUserAuth = Object.assign(user, result);
       cleanPrivateProperties<Models.IUserStored>(toStore, [Models.UserPrivateProperties.password]);
       return this._table.put(toStore)
-        .then(stored => cleanPrivateProperties<Models.IUser>(stored));
+        .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored));
     });
   }
 }

@@ -1,3 +1,4 @@
+import chai = require("chai");
 import { MODULE_TYPES, IUser } from '../../../src/auth/models';
 import container, { isLoaded } from "../../../src/container";
 import { IDynamoDBDocumentClient, DynamoTableWrapper, IDynamoTable, IDynamoSettings } from '../../../src/utils/dynamo-table';
@@ -83,15 +84,26 @@ isLoaded.then(() => {
       event = generateApiEvent();
     });
 
-    describe("Register function should throw 422 request validation errors", () => {
-      it("Missing user registration inforamtion error message", () => {
+    describe("Register function", () => {
+      it("should throw 422 request validation errors - Missing user registration inforamtion error message", () => {
         event.body = "";
         return run422Expectations("Missing user information");
       });
 
-      it("Missing field provided error message", () => {
+      it("should throw 422 request validation errors - Missing field provided error message", () => {
         event.body = JSON.stringify({ name: "whoop" });
         return run422Expectations("Email, password, or username was not provided");
+      });
+
+      it("Register function should return a user that is registered", () => {
+        event.body = JSON.stringify({ username: "abc123", email: "abc@123.com", "password": "qwer" });
+        return register(event)
+          .then(user => {
+            chai.expect(user).to.not.equal(null);
+            chai.expect(user).to.contain.keys("id", "createTime");
+            chai.expect(user.email).to.equal("abc@123.com");
+            chai.expect(user.username).to.equal("abc123");
+          });
       });
     });
 

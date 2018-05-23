@@ -6,8 +6,8 @@ import { IRepo } from "./repos";
 
 export interface IService {
   del(email: string): Promise<string>;
-  login(data: Models.IUserAuth | undefined): Promise<Models.IUser>;
-  register(model: Models.IUserAuth | undefined): Promise<Models.IUser>;
+  login(data: Models.IUserAuth | undefined): Promise<Models.IUserProfile>;
+  register(model: Models.IUserAuth | undefined): Promise<Models.IUserProfile>;
 }
 
 @log()
@@ -28,7 +28,7 @@ export class Service implements IService {
     return this._repo.del(email).then(() => "Success");
   }
 
-  login(data: Models.IUserAuth | undefined): Promise<Models.IUser> {
+  login(data: Models.IUserAuth | undefined): Promise<Models.IUserProfile> {
     if (data === null || data === undefined) {
       throw Util.ErrorGenerators.requestValidation(this.MISSING_USER_INFO);
     }
@@ -40,7 +40,7 @@ export class Service implements IService {
     return this._repo.login(data);
   }
 
-  register(data: Models.IUserAuth | undefined): Promise<Models.IUser> {
+  register(data: Models.IUserAuth | undefined): Promise<Models.IUserProfile> {
     if (data === null || data === undefined) {
       throw Util.ErrorGenerators.requestValidation(this.MISSING_USER_INFO);
     }
@@ -59,28 +59,4 @@ export class Service implements IService {
         throw reason;
       });
   }
-
-  // get(id: string): Promise<IUser> {
-  //   // Sample throw logic
-  //   if (id == "error") {
-  //     throw Util.Errors.LambdaError.requestUnauthorizedError("Access Error");
-  //   }
-  //   return this._repo.get(id);
-  // }
-
-  // // list(): Promise<IModel[]> {
-  // //     return this._repo.list();
-  // // }
-
-  // del(id: string): Promise<void> {
-  //   return this._repo.del(id);
-  // }
-
-  // put(model: IUser): Promise<IUser> {
-  //   this.validate(model);
-  //   return this.get(model.id).then(
-  //     () => this._repo.put(model)
-  //   );
-  // }
-
 }

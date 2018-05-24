@@ -23,10 +23,18 @@ export interface IUserAuth extends IUser {
   password: string;
 }
 
+export interface IUserAuthBody {
+  user: IUserAuth;
+}
+
 export interface IUserProfile extends IUser {
   bio: string;
   image: string;
   token: string;
+}
+
+export interface IUserProfileBody {
+  user: IUserProfile;
 }
 
 /**

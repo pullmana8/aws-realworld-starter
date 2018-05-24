@@ -1,6 +1,6 @@
 import chai = require("chai");
 process.env["AUTH_TABLE_JWT_SECRET"] = "sweetsecretbruh";
-import { MODULE_TYPES, IUser } from '../../../src/auth/models';
+import { MODULE_TYPES, IUserProfileBody } from '../../../src/auth/models';
 import container, { isLoaded } from "../../../src/container";
 import { IDynamoDBDocumentClient, DynamoTableWrapper, IDynamoTable, IDynamoSettings } from '../../../src/utils/dynamo-table';
 import { register, login } from '../../../src/auth/main';
@@ -107,18 +107,19 @@ isLoaded.then(() => {
       });
 
       it("should throw 422 request validation errors - Missing field provided error message", () => {
-        event.body = JSON.stringify({ name: "whoop" });
+        event.body = JSON.stringify({ user: { name: "whoop" } });
         return run422Expectations("Email, password, or username was not provided");
       });
 
       it("Register function should return a user that is registered", () => {
-        event.body = JSON.stringify({ username: "abc123", email: "abc@123.com", "password": "1234" });
+        event.body = JSON.stringify({ user: { username: "abc123", email: "abc@123.com", "password": "1234" } });
         return register(event)
-          .then(user => {
-            chai.expect(user).to.not.equal(null);
-            chai.expect(user).to.contain.keys("createTime", "id");
-            chai.expect(user.email).to.equal("abc@123.com");
-            chai.expect(user.username).to.equal("abc123");
+          .then(body => {
+            chai.expect(body).to.not.equal(null);
+            chai.expect(body.user).to.not.equal(null);
+            chai.expect(body.user).to.contain.keys("createTime", "id");
+            chai.expect(body.user.email).to.equal("abc@123.com");
+            chai.expect(body.user.username).to.equal("abc123");
           });
       });
     });
@@ -130,18 +131,19 @@ isLoaded.then(() => {
       });
 
       it("Should successfully login a user", () => {
-        event.body = JSON.stringify({ email: "abc@1234.com", "password": "1234" });
+        event.body = JSON.stringify({ user: { email: "abc@1234.com", "password": "1234" } });
         return login(event)
-          .then(user => {
-            chai.expect(user).to.not.equal(null);
-            chai.expect(user).to.contain.keys("token");
-            chai.expect(user.email).to.equal("abc@1234.com");
-            chai.expect(user.username).to.equal("abc1234");
+          .then(body => {
+            chai.expect(body).to.not.equal(null);
+            chai.expect(body.user).to.not.equal(null);
+            chai.expect(body.user).to.contain.keys("token");
+            chai.expect(body.user.email).to.equal("abc@1234.com");
+            chai.expect(body.user.username).to.equal("abc1234");
           });
       });
     });
 
-    function run422Expectations(body: string): Promise<void | IUser> {
+    function run422Expectations(body: string): Promise<void | IUserProfileBody> {
       return register(event)
         .catch(err => {
           const le: LambdaError = err as LambdaError;

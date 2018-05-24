@@ -6,7 +6,7 @@ import { SSM, config } from "aws-sdk";
 import { check422Expectations } from "../../util/fns.spec";
 import catchChaiAssertionFailures from "../../util/tests/chai-assertion-catch";
 import { LambdaError } from "../../../src/utils/errors";
-import { IUser, IUserAuth, IUserProfile } from "../../../src/auth/models";
+import { IUserProfileBody, IUserAuthBody } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
@@ -49,10 +49,12 @@ describe('Register User Scenarios', () => {
         });
     });
     it('Should prevent registration with missing fields', () => {
-      const data: IUserAuth = {
-        email: "",
-        password: "",
-        username: ""
+      const data: IUserAuthBody = {
+        user: {
+          email: "",
+          password: "",
+          username: ""
+        }
       };
       return register(data)
         .then(response => {
@@ -62,10 +64,12 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing email', () => {
-      const data: IUserAuth = {
-        email: "",
-        password: "1234",
-        username: "3456"
+      const data: IUserAuthBody = {
+        user: {
+          email: "",
+          password: "1234",
+          username: "3456"
+        }
       };
       return register(data)
         .then(response => {
@@ -75,10 +79,12 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing password', () => {
-      const data: IUserAuth = {
-        email: "1234",
-        password: "",
-        username: "3456"
+      const data: IUserAuthBody = {
+        user: {
+          email: "1234",
+          password: "",
+          username: "3456"
+        }
       };
       return register(data)
         .then(response => {
@@ -88,10 +94,12 @@ describe('Register User Scenarios', () => {
     });
 
     it('Should prevent registration with missing username', () => {
-      const data: IUserAuth = {
-        email: "1234",
-        password: "567",
-        username: ""
+      const data: IUserAuthBody = {
+        user: {
+          email: "1234",
+          password: "567",
+          username: ""
+        }
       };
       return register(data)
         .then(response => {
@@ -109,17 +117,19 @@ describe('Register User Scenarios', () => {
 
     it('Should successfully register a user', () => {
       return catchChaiAssertionFailures(Promise.resolve())
-        .then(() => register({ email: "a@a.com", password: "1234", username: "abc123" }))
+        .then(() => register({ user: { email: "a@a.com", password: "1234", username: "abc123" } }))
         .then(response => {
-          const res = response.body as IUser;
+          const body = response.body as IUserAuthBody;
           chai.expect(response.status).to.equal(200);
-          chai.expect(res).to.not.equal(undefined);
-          chai.expect(res).to.not.equal(null);
-          chai.expect(res.email).to.equal("a@a.com");
-          chai.expect(res.hasOwnProperty("password")).to.equal(false);
-          chai.expect(res.hasOwnProperty("hash")).to.equal(false);
-          chai.expect(res.hasOwnProperty("salt")).to.equal(false);
-          chai.expect(res.username).to.equal("abc123");
+          chai.expect(body).to.not.equal(undefined);
+          chai.expect(body).to.not.equal(null);
+          chai.expect(body.user).to.not.equal(undefined);
+          chai.expect(body.user).to.not.equal(null);
+          chai.expect(body.user.email).to.equal("a@a.com");
+          chai.expect(body.user.hasOwnProperty("password")).to.equal(false);
+          chai.expect(body.user.hasOwnProperty("hash")).to.equal(false);
+          chai.expect(body.user.hasOwnProperty("salt")).to.equal(false);
+          chai.expect(body.user.username).to.equal("abc123");
         });
     });
   });
@@ -129,15 +139,15 @@ describe('Register User Scenarios', () => {
 describe('Login User Scenarios', () => {
   it('Should successfully login', () => {
     return catchChaiAssertionFailures(Promise.resolve())
-      .then(() => superPromise('post', 'api/users/login', { email: "a@a.com", password: "1234" }))
+      .then(() => superPromise('post', 'api/users/login', { user: { email: "a@a.com", password: "1234" } }))
       .then(response => {
         chai.expect(response.status).to.equal(200);
-        const user: IUserProfile = response.body;
-        chai.expect(user.email).to.equal("a@a.com");
-        chai.expect(user.username).to.equal("abc123");
-        chai.expect(user.token).to.not.equal(undefined);
+        const body: IUserProfileBody = response.body;
+        chai.expect(body.user.email).to.equal("a@a.com");
+        chai.expect(body.user.username).to.equal("abc123");
+        chai.expect(body.user.token).to.not.equal(undefined);
         try {
-          jwt.verify(user.token || "", "thisisnotthekeyyourelookingfor");
+          jwt.verify(body.user.token || "", "thisisnotthekeyyourelookingfor");
           throw new Error("This should not succeed, your key is `thisisnotthekeyyourelookingfor`. Really?");
         } catch (err) {
           chai.expect(err.message).to.equal("invalid signature");
@@ -162,10 +172,10 @@ describe('Login User Scenarios', () => {
             chai.expect(result.Parameter.Value).to.not.equal(undefined);
           }
           if (result && result.Parameter && result.Parameter.Value) {
-            const decoded: any = jwt.verify(user.token || "", result.Parameter.Value);
-            chai.expect(decoded.username).to.equal(user.username);
-            chai.expect(decoded.email).to.equal(user.email);
-            chai.expect(decoded.createTime).to.equal(user.createTime);
+            const decoded: any = jwt.verify(body.user.token || "", result.Parameter.Value);
+            chai.expect(decoded.username).to.equal(body.user.username);
+            chai.expect(decoded.email).to.equal(body.user.email);
+            chai.expect(decoded.createTime).to.equal(body.user.createTime);
 
             const now = new Date().getTime();
             // TODO: Look up config value; Assuming 30 minutes for now

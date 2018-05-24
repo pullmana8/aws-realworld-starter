@@ -12,14 +12,14 @@ export function del(event: APIGatewayEvent): Promise<string> {
   });
 }
 
-export function login(event: APIGatewayEvent): Promise<Models.IUser> {
+export function login(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
   return isLoaded.then(() => {
     const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
     return service.login(Utils.safeJsonParse(event.body || "", "[Auth.Main]::[login] "));
   });
 }
 
-export function register(event: APIGatewayEvent): Promise<Models.IUser> {
+export function register(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
   return isLoaded.then(() => {
     const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
     return service.register(Utils.safeJsonParse(event.body || "", "[Auth.Main]::[register] "));

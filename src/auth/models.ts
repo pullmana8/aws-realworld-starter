@@ -16,18 +16,25 @@ export interface IDeleteUserRequest extends APIGatewayEvent {
 export interface IUser {
   createTime?: number;
   email: string;
-  jwt?: string;
-  username?: string;
+  username: string;
 }
 
 export interface IUserAuth extends IUser {
   password: string;
 }
 
+export interface IUserAuthBody {
+  user: IUserAuth;
+}
+
 export interface IUserProfile extends IUser {
-  bio: string;
-  image: string;
-  token: string;
+  bio: string | null;
+  image: string | null;
+  token: string | null;
+}
+
+export interface IUserProfileBody {
+  user: IUserProfile;
 }
 
 /**

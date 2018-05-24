@@ -8,9 +8,9 @@ import * as Settings from "./settings";
 
 export interface IRepo {
   del(email: string): Promise<void>;
-  get(email: string): Promise<Models.IUser>;
-  login(user: Models.IUserAuth): Promise<Models.IUser>;
-  register(user: Models.IUserAuth): Promise<Models.IUser>;
+  get(email: string): Promise<Models.IUserProfile>;
+  login(user: Models.IUserAuth): Promise<Models.IUserProfile>;
+  register(user: Models.IUserAuth): Promise<Models.IUserProfile>;
 }
 
 @log()
@@ -35,12 +35,12 @@ export class Repo implements IRepo {
       });
   }
 
-  get(email: string): Promise<Models.IUser> {
+  get(email: string): Promise<Models.IUserProfile> {
     return _internalGet(this._table, email)
-      .then(item => cleanPrivateProperties<Models.IUser>(item as Models.IUserStored));
+      .then(item => cleanPrivateProperties<Models.IUserProfile>(item as Models.IUserStored));
   }
 
-  login(user: Models.IUserAuth): Promise<Models.IUser> {
+  login(user: Models.IUserAuth): Promise<Models.IUserProfile> {
     return _internalGet(this._table, user.email)
       .then(storedUser => {
         // Not chained since we need access to the stored user in this scope
@@ -49,24 +49,23 @@ export class Repo implements IRepo {
             if (generated.passwordHash !== storedUser.passwordHash) {
               throw Utils.ErrorGenerators.requestUnauthorizedError("The username or password is invalid");
             }
-            return cleanPrivateProperties<Models.IUser>(storedUser);
+            return cleanPrivateProperties<Models.IUserProfile>(storedUser);
           })
-          .then(cleaned => {
-            return generateJwt(cleaned, this._settings)
-              .then(jwt => {
-                cleaned.jwt = jwt;
-                return cleaned;
-              });
-          });
+          .then(cleaned => assignToken(cleaned, this._settings));
       });
   }
 
-  register(user: Models.IUserAuth): Promise<Models.IUser> {
+  register(user: Models.IUserAuth): Promise<Models.IUserProfile> {
     return _createPasswordHash(user.password, _createSalt()).then(result => {
-      const toStore: Models.IUserStored & Models.IUserAuth = Object.assign(user, result);
+      const toStore: Models.IUserStored & Models.IUserAuth & Models.IUserProfile = Object.assign(user, result, {
+        bio: null,
+        image: null,
+        token: null
+      });
       cleanPrivateProperties<Models.IUserStored>(toStore, [Models.UserPrivateProperties.password]);
       return this._table.put(toStore)
-        .then(stored => cleanPrivateProperties<Models.IUser>(stored));
+        .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored))
+        .then(cleaned => assignToken(cleaned, this._settings));
     });
   }
 }
@@ -129,5 +128,12 @@ function generateJwt(user: Models.IUser, settings: Settings.ISettings): Promise<
           resolve(encoded);
         }
       });
+  });
+}
+
+function assignToken(user: Models.IUserProfile, settings: Settings.ISettings): Promise<Models.IUserProfile> {
+  return generateJwt(user, settings).then(token => {
+    user.token = token;
+    return user;
   });
 }

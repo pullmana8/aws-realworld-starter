@@ -12,6 +12,13 @@ export function del(event: APIGatewayEvent): Promise<string> {
   });
 }
 
+export function getCurrentUser(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
+  return isLoaded.then(() => {
+    const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
+    return service.getCurrentUser(event.headers.hasOwnProperty("Authorization") ? event.headers.Authorization : undefined);
+  });
+}
+
 export function login(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
   return isLoaded.then(() => {
     const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);

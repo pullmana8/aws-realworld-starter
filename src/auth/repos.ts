@@ -9,6 +9,7 @@ import * as Settings from "./settings";
 export interface IRepo {
   del(email: string): Promise<void>;
   get(email: string): Promise<Models.IUserProfile>;
+  getCurrentUser(token: string): Promise<Models.IUserProfile>;
   login(user: Models.IUserAuth): Promise<Models.IUserProfile>;
   register(user: Models.IUserAuth): Promise<Models.IUserProfile>;
 }
@@ -38,6 +39,32 @@ export class Repo implements IRepo {
   get(email: string): Promise<Models.IUserProfile> {
     return _internalGet(this._table, email)
       .then(item => cleanPrivateProperties<Models.IUserProfile>(item as Models.IUserStored));
+  }
+
+  getCurrentUser(token: string): Promise<Models.IUserProfile> {
+    return new Promise<Models.IUserProfile>((resolve, reject) => {
+      try {
+        jwt.verify(token, this._settings.tokenSecret, (err, decoded) => {
+          if (err) {
+            Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`, token);
+            if (err instanceof jwt.JsonWebTokenError) {
+              reject(Utils.ErrorGenerators.requestUnauthorizedError(err.message));
+            } else {
+              reject(err);
+            }
+          } else if (typeof decoded === "string") {
+            Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] Did not expect a decoded token to be a string: ${decoded}`);
+            reject(Utils.ErrorGenerators.internalError(Utils.Errors.INTERNAL_ERR));
+          } else {
+            this.get((decoded as Models.IUser).email).then(cleaned => assignToken(cleaned, this._settings))
+              .then(final => resolve(final));
+          }
+        });
+      } catch (err) {
+        Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`);
+        reject(Utils.ErrorGenerators.requestUnauthorizedError("The user must reauthenticate because their token is not valid"));
+      }
+    });
   }
 
   login(user: Models.IUserAuth): Promise<Models.IUserProfile> {

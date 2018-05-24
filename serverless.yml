@@ -35,6 +35,16 @@ functions:
           method: delete
           path: api/users/{email}
           cors: true
+  getCurrentUser:
+    handler: src/auth/handler.getCurrentUser
+    environment:
+      AUTH_TABLE_NAME: ${self:provider.environment.AUTH_TABLE}
+      AUTH_TABLE_ADD_TIMESTAMPS: TRUE
+    events:
+      - http:
+          method: get
+          path: /api/user
+          cors: true
   login:
     handler: src/auth/handler.login
     environment:

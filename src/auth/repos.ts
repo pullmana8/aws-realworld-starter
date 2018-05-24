@@ -51,22 +51,21 @@ export class Repo implements IRepo {
             }
             return cleanPrivateProperties<Models.IUserProfile>(storedUser);
           })
-          .then(cleaned => {
-            return generateJwt(cleaned, this._settings)
-              .then(jwt => {
-                cleaned.token = jwt;
-                return cleaned;
-              });
-          });
+          .then(cleaned => assignToken(cleaned, this._settings));
       });
   }
 
   register(user: Models.IUserAuth): Promise<Models.IUserProfile> {
     return _createPasswordHash(user.password, _createSalt()).then(result => {
-      const toStore: Models.IUserStored & Models.IUserAuth = Object.assign(user, result);
+      const toStore: Models.IUserStored & Models.IUserAuth & Models.IUserProfile = Object.assign(user, result, {
+        bio: null,
+        image: null,
+        token: null
+      });
       cleanPrivateProperties<Models.IUserStored>(toStore, [Models.UserPrivateProperties.password]);
       return this._table.put(toStore)
-        .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored));
+        .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored))
+        .then(cleaned => assignToken(cleaned, this._settings));
     });
   }
 }
@@ -129,5 +128,12 @@ function generateJwt(user: Models.IUser, settings: Settings.ISettings): Promise<
           resolve(encoded);
         }
       });
+  });
+}
+
+function assignToken(user: Models.IUserProfile, settings: Settings.ISettings): Promise<Models.IUserProfile> {
+  return generateJwt(user, settings).then(token => {
+    user.token = token;
+    return user;
   });
 }

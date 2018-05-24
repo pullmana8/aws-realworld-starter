@@ -28,9 +28,9 @@ export interface IUserAuthBody {
 }
 
 export interface IUserProfile extends IUser {
-  bio: string;
-  image: string;
-  token: string;
+  bio: string | null;
+  image: string | null;
+  token: string | null;
 }
 
 export interface IUserProfileBody {

@@ -5,7 +5,7 @@
   "scripts": {
     "test": "DYNAMO_TABLE=sweeeet nyc mocha -r reflect-metadata -r tests/prepare.ts tests/**/*.unit.spec.ts",
     "test:e2e": "nyc mocha tests/**/e2e.spec.ts --timeout 10000",
-    "test:e2e:postman": "./node_modules/newman/bin/newman.js run tests/postman/api-tests.postman.json -e ./tests/postman/env-api-tests.postman.json",
+    "test:e2e:postman": "./node_modules/newman/bin/newman.js run tests/postman/api.tests.json -e ./tests/postman/api.tests.env.json",
     "test:e2e:deploy": "./node_modules/serverless/bin/serverless deploy && gulp && npm run test:e2e",
     "test:e2e:remove": "./node_modules/serverless/bin/serverless remove"
   },

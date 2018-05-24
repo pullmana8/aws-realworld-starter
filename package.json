@@ -5,6 +5,7 @@
   "scripts": {
     "test": "DYNAMO_TABLE=sweeeet nyc mocha -r reflect-metadata -r tests/prepare.ts tests/**/*.unit.spec.ts",
     "test:e2e": "nyc mocha tests/**/e2e.spec.ts --timeout 10000",
+    "test:e2e:postman": "./node_modules/newman/bin/newman.js run tests/postman/api.tests.json -e ./tests/postman/api.tests.env.json",
     "test:e2e:deploy": "./node_modules/serverless/bin/serverless deploy && gulp && npm run test:e2e",
     "test:e2e:remove": "./node_modules/serverless/bin/serverless remove"
   },
@@ -53,6 +54,7 @@
     "gulp": "^3.9.1",
     "gulp-string-replace": "^0.4.0",
     "mocha": "^4.1.0",
+    "newman": "^3.9.3",
     "nyc": "^11.7.3",
     "serverless": "^1.27.2",
     "serverless-plugin-typescript": "^1.1.5",

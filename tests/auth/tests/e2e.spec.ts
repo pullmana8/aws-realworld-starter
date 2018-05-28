@@ -10,24 +10,27 @@ import { IUserProfileBody, IUserAuthBody } from "../../../src/auth/models";
 
 // NOTE: Make sure the URL ends with a trailing slash
 // npm run test:e2e
-const request = supertest.agent("https://xh0v7rc5p5.execute-api.us-east-1.amazonaws.com/dev/");
+const request = supertest.agent("[[ENDPOINT]]");
 
 function register(userReg: any): Promise<supertest.Response> {
   return superPromise('post', 'api/users', userReg);
 }
 
-function superPromise(method: string, endpoint: string, body?: any): Promise<supertest.Response> {
+function superPromise(method: string, endpoint: string, body?: any, userToken?: string | null): Promise<supertest.Response> {
   return new Promise((resolve, reject) => {
     const stt: supertest.Test = (request as any)[method](endpoint);
-    stt.send(body)
-      .set('accept', 'json')
-      .end((err: any, res: supertest.Response) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res);
-        }
-      });
+    stt.send(body);
+    if (userToken) {
+      stt.set('Authorization', `Token ${userToken}`);
+    }
+    stt.set('accept', 'json');
+    stt.end((err: any, res: supertest.Response) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
   });
 }
 
@@ -136,6 +139,7 @@ describe('Register User Scenarios', () => {
 
 });
 
+let userToken: string | null;
 describe('Login User Scenarios', () => {
   it('Should successfully login', () => {
     return catchChaiAssertionFailures(Promise.resolve())
@@ -146,6 +150,7 @@ describe('Login User Scenarios', () => {
         chai.expect(body.user.email).to.equal("a@a.com");
         chai.expect(body.user.username).to.equal("abc123");
         chai.expect(body.user.token).to.not.equal(undefined);
+        userToken = body.user.token;
         try {
           jwt.verify(body.user.token || "", "thisisnotthekeyyourelookingfor");
           throw new Error("This should not succeed, your key is `thisisnotthekeyyourelookingfor`. Really?");
@@ -155,7 +160,7 @@ describe('Login User Scenarios', () => {
         return new Promise((resolve, reject) => {
           config.region = "us-east-1";
           new SSM().getParameter({
-            Name: "real-world-auth-jwt-secret", WithDecryption: true
+            Name: "real-world-auth-jwt-secret-dev", WithDecryption: true
           }, (err, result) => {
             if (err) {
               reject(err);
@@ -196,10 +201,29 @@ describe('Login User Scenarios', () => {
   });
 });
 
+describe('Update User Scenarios', () => {
+  it('Should successfully update a user', () => {
+    return catchChaiAssertionFailures(Promise.resolve())
+      .then(() => superPromise("put", "api/user", { user: { email: "toats@new.com", username: "toatsnew", bio: "some pig", image: "someurl" } }, userToken))
+      .then(response => {
+        chai.expect(response.status).to.equal(200);
+        const body: IUserProfileBody = response.body as IUserProfileBody;
+        chai.expect(body.user).to.not.equal(undefined);
+        chai.expect(body.user.email).to.equal("toats@new.com");
+        chai.expect(body.user.username).to.equal("toatsnew");
+        chai.expect(body.user.image).to.equal("someurl");
+        chai.expect(body.user.bio).to.equal("some pig");
+        chai.expect(body.user.token).to.not.equal(null);
+        chai.expect(body.user.token).to.not.equal(undefined);
+        chai.expect(body.user).to.include.keys("updateTime", "createTime");
+      });
+  });
+});
+
 describe('Cleanup', () => {
   it('Should delete the registered users', () => {
     return catchChaiAssertionFailures(Promise.resolve())
-      .then(() => superPromise("del", encodeURI("api/users/a@a.com")))
+      .then(() => superPromise("del", encodeURI("api/users/toats@new.com")))
       .then(response => {
         chai.expect(response.status).to.equal(200);
       });

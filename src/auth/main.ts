@@ -12,10 +12,10 @@ export function del(event: APIGatewayEvent): Promise<string> {
   });
 }
 
-export function getCurrentUser(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
+export function getUserByToken(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
   return isLoaded.then(() => {
     const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
-    return service.getCurrentUser(event.headers.hasOwnProperty("Authorization") ? event.headers.Authorization : undefined);
+    return service.getUserByToken(event.headers.hasOwnProperty("Authorization") ? event.headers.Authorization : undefined);
   });
 }
 
@@ -30,5 +30,15 @@ export function register(event: APIGatewayEvent): Promise<Models.IUserProfileBod
   return isLoaded.then(() => {
     const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
     return service.register(Utils.safeJsonParse(event.body || "", "[Auth.Main]::[register] "));
+  });
+}
+
+export function update(event: APIGatewayEvent): Promise<Models.IUserProfileBody> {
+  return isLoaded.then(() => {
+    const service = container.get<Services.IService>(Models.MODULE_TYPES.Service);
+    return service.update(
+      event.headers.hasOwnProperty("Authorization") ? event.headers.Authorization : undefined,
+      Utils.safeJsonParse(event.body || "", "[Auth.Main]::[update] ")
+    );
   });
 }

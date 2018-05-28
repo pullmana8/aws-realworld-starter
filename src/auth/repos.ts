@@ -9,9 +9,10 @@ import * as Settings from "./settings";
 export interface IRepo {
   del(email: string): Promise<void>;
   get(email: string): Promise<Models.IUserProfile>;
-  getCurrentUser(token: string): Promise<Models.IUserProfile>;
+  getUserByToken(token: string): Promise<Models.IUserProfile>;
   login(user: Models.IUserAuth): Promise<Models.IUserProfile>;
   register(user: Models.IUserAuth): Promise<Models.IUserProfile>;
+  update(currentUser: Models.IUserProfile, user: Models.IUserProfile): Promise<Models.IUserProfile>;
 }
 
 @log()
@@ -41,28 +42,33 @@ export class Repo implements IRepo {
       .then(item => cleanPrivateProperties<Models.IUserProfile>(item as Models.IUserStored));
   }
 
-  getCurrentUser(token: string): Promise<Models.IUserProfile> {
+  getUserByToken(token: string): Promise<Models.IUserProfile> {
     return new Promise<Models.IUserProfile>((resolve, reject) => {
       try {
         jwt.verify(token, this._settings.tokenSecret, (err, decoded) => {
-          if (err) {
-            Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`, token);
-            if (err instanceof jwt.JsonWebTokenError) {
-              reject(Utils.ErrorGenerators.requestUnauthorizedError(err.message));
+          try {
+            if (err) {
+              Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`, token);
+              if (err instanceof jwt.JsonWebTokenError) {
+                reject(Utils.ErrorGenerators.requestUnauthorizedError(err.message));
+              } else {
+                reject(err);
+              }
+            } else if (typeof decoded === "string") {
+              Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] Did not expect a decoded token to be a string: ${decoded}`);
+              reject(Utils.ErrorGenerators.internalError(Utils.Errors.INTERNAL_ERR));
             } else {
-              reject(err);
+              this.get((decoded as Models.IUser).email).then(cleaned => assignToken(cleaned, this._settings))
+                .then(final => resolve(final));
             }
-          } else if (typeof decoded === "string") {
-            Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] Did not expect a decoded token to be a string: ${decoded}`);
-            reject(Utils.ErrorGenerators.internalError(Utils.Errors.INTERNAL_ERR));
-          } else {
-            this.get((decoded as Models.IUser).email).then(cleaned => assignToken(cleaned, this._settings))
-              .then(final => resolve(final));
+          } catch (err) {
+            Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`, token);
+            reject(Utils.ErrorGenerators.requestUnauthorizedError("invalid token"));
           }
         });
       } catch (err) {
-        Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`);
-        reject(Utils.ErrorGenerators.requestUnauthorizedError("The user must reauthenticate because their token is not valid"));
+        Utils.Logging.Logger.error(`[Auth.Repo]::[getCurrentUser] could not verify token: ${err}`, token);
+        reject(Utils.ErrorGenerators.requestUnauthorizedError("invalid token"));
       }
     });
   }
@@ -94,6 +100,20 @@ export class Repo implements IRepo {
         .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored))
         .then(cleaned => assignToken(cleaned, this._settings));
     });
+  }
+
+  update(curUser: Models.IUserProfile, user: Models.IUserProfile): Promise<Models.IUserProfile> {
+    const isEmailUpdating = user.email !== undefined && user.email !== null && user.email !== "";
+    return _internalGet(this._table, curUser.email)
+      .then(retrieved => Object.assign(retrieved, user))
+      .then(updated => {
+        if (isEmailUpdating) {
+          this.del(curUser.email);
+        }
+        return this._table.put(updated);
+      })
+      .then(stored => cleanPrivateProperties<Models.IUserProfile>(stored))
+      .then(cleaned => assignToken(cleaned, this._settings));
   }
 }
 
